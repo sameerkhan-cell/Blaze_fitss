@@ -66,7 +66,7 @@ export default function CartPanel({ onClose }) {
           <div className="cart-panel__footer">
             <div className="cart-panel__total-row">
               <span className="cart-panel__total-label">TOTAL</span>
-              <span className="cart-panel__total-val">${cart.total?.toFixed(2)}</span>
+              <span className="cart-panel__total-val">Rs{cart.total?.toFixed(2)}</span>
             </div>
             <button
               className="cart-panel__checkout-btn"

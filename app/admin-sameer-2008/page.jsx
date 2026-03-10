@@ -216,7 +216,7 @@ export default function AdminPage() {
   if (!authed)  return <AdminLogin onLogin={() => setAuthed(true)} />
 
   const s = {
-    page:  { minHeight: '100vh', background: '#0c0c0c', color: '#f0ece4', fontFamily: 'Cormorant Garamond, serif', padding: '1rem' },
+   page: { minHeight: '100vh', background: '#0c0c0c', color: '#f0ece4', fontFamily: 'Cormorant Garamond, serif', padding: '1rem' },
     header:{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #1e1e1e', paddingBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' },
     tabs:  { display: 'flex', gap: '0.25rem', marginBottom: '2rem' },
     tab:   (a) => ({ background: 'none', border: 'none', borderBottom: `2px solid ${a ? '#e8d5b7' : 'transparent'}`, color: a ? '#e8d5b7' : '#555', fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', letterSpacing: '0.15em', padding: '0.5rem 1rem 0.3rem', cursor: 'pointer' }),
@@ -228,6 +228,7 @@ export default function AdminPage() {
     label: { display: 'block', fontFamily: 'DM Mono, monospace', fontSize: '0.65rem', letterSpacing: '0.15em', color: '#555', marginBottom: '0.35rem' },
     field: { marginBottom: '1rem' },
     grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' },
+    
   }
 
   const extraImagePreviews = form.image_urls
@@ -562,4 +563,6 @@ function Detail({ label, value }) {
       <span style={{ fontSize: '0.9rem', color: '#ccc' }}>{value}</span>
     </div>
   )
+
+
 }

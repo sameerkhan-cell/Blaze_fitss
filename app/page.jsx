@@ -17,7 +17,7 @@ export default async function HomePage({ searchParams }) {
       ? await searchProducts(query)
       : await getAllProducts()
   } catch (err) {
-    error = 'Failed to load products. Please check your database connection.'
+    error = 'Failed to load products. Please check your  connection.'
     console.error(err)
   }
 

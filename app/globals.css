@@ -520,3 +520,14 @@ a { color: inherit; text-decoration: none; }
   .footer__links  { grid-template-columns:1fr; }
   .navbar__cart-btn span:first-child { font-size:0.9rem; }
 }
+/* Admin mobile fix */
+@media (max-width: 768px) {
+  .admin-order-card {
+    width: 100%;
+    overflow: hidden;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
