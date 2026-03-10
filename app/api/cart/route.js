@@ -5,6 +5,8 @@ import { cookies } from 'next/headers'
 import { getCartWithItems, addToCart } from '../../../lib/queries'
 import { v4 as uuidv4 } from 'uuid'
 
+export const dynamic = 'force-dynamic'
+
 function getSessionId() {
   const cookieStore = cookies()
   let sessionId = cookieStore.get('bf_session')?.value

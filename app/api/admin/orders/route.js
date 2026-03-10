@@ -3,6 +3,8 @@
 import { NextResponse } from 'next/server'
 import { query } from '../../../../lib/db'
 
+export const dynamic = 'force-dynamic'  // ← ADD THIS LINE
+
 export async function GET() {
   try {
     // Get all orders
