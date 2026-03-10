@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 
-const ADMIN_PASSWORD = 'sameerkhan123.' // Change this to your password
+const ADMIN_PASSWORD = 'sameerkhan123.'
 
 const TAG_COLORS = [
   { label: 'Gold',   value: '#e8d5b7' },
@@ -34,7 +34,6 @@ const emptyForm = {
   rating: '4.5', review_count: '0', stock: '100',
 }
 
-// ── LOGIN SCREEN ──
 function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
@@ -83,22 +82,21 @@ function AdminLogin({ onLogin }) {
   )
 }
 
-// ── MAIN ADMIN PANEL ──
 export default function AdminPage() {
-  const [authed, setAuthed]         = useState(false)
-  const [checking, setChecking]     = useState(true)
-  const [tab, setTab]               = useState('products')
-  const [products, setProducts]     = useState([])
-  const [orders, setOrders]         = useState([])
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
-  const [loading, setLoading]       = useState(true)
-  const [showForm, setShowForm]     = useState(false)
-  const [editProduct, setEditProduct] = useState(null)
-  const [form, setForm]             = useState(emptyForm)
-  const [saving, setSaving]         = useState(false)
-  const [message, setMessage]       = useState('')
+  const [authed, setAuthed]               = useState(false)
+  const [checking, setChecking]           = useState(true)
+  const [tab, setTab]                     = useState('products')
+  const [products, setProducts]           = useState([])
+  const [orders, setOrders]               = useState([])
+  const [categories, setCategories]       = useState(DEFAULT_CATEGORIES)
+  const [loading, setLoading]             = useState(true)
+  const [showForm, setShowForm]           = useState(false)
+  const [editProduct, setEditProduct]     = useState(null)
+  const [form, setForm]                   = useState(emptyForm)
+  const [saving, setSaving]               = useState(false)
+  const [message, setMessage]             = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState(null)
-  const [search, setSearch]         = useState('')
+  const [search, setSearch]               = useState('')
 
   useEffect(() => {
     const isAuthed = sessionStorage.getItem('bf_admin') === '1'
@@ -122,7 +120,7 @@ export default function AdminPage() {
       if (c.success && c.data?.length > 0) setCategories(c.data)
       else setCategories(DEFAULT_CATEGORIES)
     } catch {
-      showMsg('Failed to load data — check DB connection', 'error')
+      showMsg('Failed to load data', 'error')
       setCategories(DEFAULT_CATEGORIES)
     } finally {
       setLoading(false)
@@ -137,7 +135,6 @@ export default function AdminPage() {
   }
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
-
   const openAdd = () => { setEditProduct(null); setForm(emptyForm); setShowForm(true) }
 
   const openEdit = (product) => {
@@ -163,26 +160,18 @@ export default function AdminPage() {
     if (!form.name.trim())              return showMsg('Product name is required', 'error')
     if (!form.category_id)              return showMsg('Please select a category', 'error')
     if (!form.price || form.price <= 0) return showMsg('Valid price is required', 'error')
-
     setSaving(true)
     try {
       const url    = editProduct ? `/api/admin/products/${editProduct.id}` : '/api/admin/products'
       const method = editProduct ? 'PUT' : 'POST'
-      const res    = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      const json = await res.json()
+      const res    = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      const json   = await res.json()
       if (!json.success) throw new Error(json.error)
       if (editProduct) {
         setProducts(prev => prev.map(p => p.id === editProduct.id ? json.data : p))
         showMsg('Product updated!')
       } else {
-        setProducts(prev => {
-          if (prev.some(p => p.id === json.data.id)) return prev
-          return [json.data, ...prev]
-        })
+        setProducts(prev => prev.some(p => p.id === json.data.id) ? prev : [json.data, ...prev])
         showMsg('Product added!')
       }
       setShowForm(false)
@@ -201,9 +190,7 @@ export default function AdminPage() {
       setProducts(prev => prev.filter(p => p.id !== id))
       setDeleteConfirm(null)
       showMsg('Product deleted')
-    } catch (e) {
-      showMsg(e.message, 'error')
-    }
+    } catch (e) { showMsg(e.message, 'error') }
   }
 
   const handleOrderStatus = async (orderId, status) => {
@@ -217,9 +204,7 @@ export default function AdminPage() {
       if (!json.success) throw new Error(json.error)
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
       showMsg('Order status updated!')
-    } catch (e) {
-      showMsg(e.message, 'error')
-    }
+    } catch (e) { showMsg(e.message, 'error') }
   }
 
   const filteredProducts = products.filter(p =>
@@ -231,10 +216,10 @@ export default function AdminPage() {
   if (!authed)  return <AdminLogin onLogin={() => setAuthed(true)} />
 
   const s = {
-    page:  { minHeight: '100vh', background: '#0c0c0c', color: '#f0ece4', fontFamily: 'Cormorant Garamond, serif', padding: '2rem' },
-    header:{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #1e1e1e', paddingBottom: '1.5rem' },
+    page:  { minHeight: '100vh', background: '#0c0c0c', color: '#f0ece4', fontFamily: 'Cormorant Garamond, serif', padding: '1rem' },
+    header:{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #1e1e1e', paddingBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' },
     tabs:  { display: 'flex', gap: '0.25rem', marginBottom: '2rem' },
-    tab:   (active) => ({ background: 'none', border: 'none', borderBottom: `2px solid ${active ? '#e8d5b7' : 'transparent'}`, color: active ? '#e8d5b7' : '#555', fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', letterSpacing: '0.15em', padding: '0.5rem 1rem 0.3rem', cursor: 'pointer' }),
+    tab:   (a) => ({ background: 'none', border: 'none', borderBottom: `2px solid ${a ? '#e8d5b7' : 'transparent'}`, color: a ? '#e8d5b7' : '#555', fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', letterSpacing: '0.15em', padding: '0.5rem 1rem 0.3rem', cursor: 'pointer' }),
     btn:   (v = 'primary') => ({ background: v === 'primary' ? '#e8d5b7' : v === 'danger' ? '#ef4444' : 'none', border: v === 'ghost' ? '1px solid #2a2a2a' : 'none', color: v === 'primary' ? '#0c0c0c' : v === 'danger' ? '#fff' : '#888', padding: '0.5rem 1.2rem', fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', letterSpacing: '0.1em', borderRadius: '4px', cursor: 'pointer', fontWeight: v === 'primary' ? 500 : 400 }),
     table: { width: '100%', borderCollapse: 'collapse' },
     th:    { fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', letterSpacing: '0.15em', color: '#444', padding: '0.75rem 1rem', borderBottom: '1px solid #1e1e1e', textAlign: 'left' },
@@ -243,17 +228,14 @@ export default function AdminPage() {
     label: { display: 'block', fontFamily: 'DM Mono, monospace', fontSize: '0.65rem', letterSpacing: '0.15em', color: '#555', marginBottom: '0.35rem' },
     field: { marginBottom: '1rem' },
     grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' },
-    badge: (status) => ({ display: 'inline-block', padding: '0.2rem 0.7rem', borderRadius: '20px', fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', letterSpacing: '0.1em', background: `${STATUS_COLORS[status]}22`, color: STATUS_COLORS[status] }),
   }
 
-  // parse extra image previews
   const extraImagePreviews = form.image_urls
     ? form.image_urls.split('\n').map(u => u.trim()).filter(Boolean)
     : []
 
   return (
     <div style={s.page}>
-      {/* Header */}
       <div style={s.header}>
         <div>
           <h1 style={{ fontSize: '2rem', fontWeight: 300 }}>Admin Panel</h1>
@@ -265,29 +247,26 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         {[
           { label: 'Total Products', value: products.length, color: '#e8d5b7' },
           { label: 'Total Orders',   value: orders.length,   color: '#818cf8' },
-          { label: 'Pending Orders', value: orders.filter(o => o.status === 'pending').length, color: '#f59e0b' },
-          { label: 'Revenue', value: `$${orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + parseFloat(o.total_amount || 0), 0).toFixed(0)}`, color: '#34d399' },
+          { label: 'Pending',        value: orders.filter(o => o.status === 'pending').length, color: '#f59e0b' },
+          { label: 'Revenue',        value: `Rs ${orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + parseFloat(o.total_amount || 0), 0).toFixed(0)}`, color: '#34d399' },
         ].map(stat => (
-          <div key={stat.label} style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '8px', padding: '1.2rem' }}>
+          <div key={stat.label} style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '8px', padding: '1rem' }}>
             <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: '#444', letterSpacing: '0.15em', marginBottom: '0.5rem' }}>{stat.label.toUpperCase()}</p>
-            <p style={{ fontSize: '2rem', fontWeight: 300, color: stat.color }}>{stat.value}</p>
+            <p style={{ fontSize: '1.8rem', fontWeight: 300, color: stat.color, margin: 0 }}>{stat.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Tabs */}
       <div style={s.tabs}>
         {['products', 'orders'].map(t => (
           <button key={t} style={s.tab(tab === t)} onClick={() => setTab(t)}>{t.toUpperCase()}</button>
         ))}
       </div>
 
-      {/* Toast */}
       {message && (
         <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', background: message.type === 'error' ? '#ef4444' : '#e8d5b7', color: '#0c0c0c', padding: '0.75rem 1.5rem', fontFamily: 'DM Mono, monospace', fontSize: '0.75rem', borderRadius: '4px', zIndex: 999, whiteSpace: 'nowrap' }}>
           {message.type === 'error' ? '✕' : '✓'} {message.text}
@@ -296,15 +275,13 @@ export default function AdminPage() {
 
       {loading && <div style={{ textAlign: 'center', padding: '4rem', color: '#444', fontFamily: 'DM Mono, monospace', fontSize: '0.8rem' }}>Loading...</div>}
 
-      {/* PRODUCTS TAB */}
       {!loading && tab === 'products' && (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <input style={{ ...s.input, width: 260 }} placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <input style={{ ...s.input, maxWidth: 260 }} placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} />
             <button style={s.btn('primary')} onClick={openAdd}>+ ADD PRODUCT</button>
           </div>
 
-          {/* Product Form Modal */}
           {showForm && (
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
               <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}>
@@ -312,8 +289,6 @@ export default function AdminPage() {
                   <h2 style={{ fontSize: '1.6rem', fontWeight: 300 }}>{editProduct ? 'Edit Product' : 'Add New Product'}</h2>
                   <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: '#555', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                 </div>
-
-                {/* Category */}
                 <div style={s.field}>
                   <label style={s.label}>CATEGORY *</label>
                   <select value={form.category_id} onChange={e => set('category_id', e.target.value)} style={{ ...s.input, appearance: 'none' }}>
@@ -321,52 +296,34 @@ export default function AdminPage() {
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
-
-                {/* Product Name */}
                 <div style={s.field}>
                   <label style={s.label}>PRODUCT NAME *</label>
                   <input style={s.input} placeholder="e.g. Argentina Home 2026" value={form.name} onChange={e => set('name', e.target.value)} />
                 </div>
-
-                {/* Main Image */}
                 <div style={s.field}>
                   <label style={s.label}>MAIN IMAGE URL</label>
                   <input style={s.input} placeholder="/images/products/jersey1.webp" value={form.image_url} onChange={e => set('image_url', e.target.value)} />
                   {form.image_url && (
-                    <img src={form.image_url} alt="preview"
-                      style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 4, marginTop: 8 }}
-                      onError={e => e.target.style.display = 'none'} />
+                    <img src={form.image_url} alt="preview" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 4, marginTop: 8 }} onError={e => e.target.style.display = 'none'} />
                   )}
                 </div>
-
-                {/* Extra Images */}
                 <div style={s.field}>
                   <label style={s.label}>EXTRA IMAGES (one path per line)</label>
-                  <textarea
-                    style={{ ...s.input, minHeight: 90, resize: 'vertical', fontSize: '0.82rem' }}
+                  <textarea style={{ ...s.input, minHeight: 90, resize: 'vertical', fontSize: '0.82rem' }}
                     placeholder={'/images/products/jersey1-back.webp\n/images/products/jersey1-detail.webp'}
-                    value={form.image_urls || ''}
-                    onChange={e => set('image_urls', e.target.value)}
-                  />
-                  {/* Previews */}
+                    value={form.image_urls || ''} onChange={e => set('image_urls', e.target.value)} />
                   {extraImagePreviews.length > 0 && (
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                       {extraImagePreviews.map((url, i) => (
-                        <img key={i} src={url} alt={`extra-${i}`}
-                          style={{ width: 52, height: 64, objectFit: 'cover', borderRadius: 4, border: '1px solid #2a2a2a' }}
-                          onError={e => e.target.style.display = 'none'} />
+                        <img key={i} src={url} alt={`extra-${i}`} style={{ width: 52, height: 64, objectFit: 'cover', borderRadius: 4, border: '1px solid #2a2a2a' }} onError={e => e.target.style.display = 'none'} />
                       ))}
                     </div>
                   )}
                 </div>
-
-                {/* Description */}
                 <div style={s.field}>
                   <label style={s.label}>DESCRIPTION</label>
                   <textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Product description..." style={{ ...s.input, minHeight: 80, resize: 'vertical' }} />
                 </div>
-
-                {/* Price & Stock */}
                 <div style={s.grid2}>
                   <div style={s.field}>
                     <label style={s.label}>PRICE (Rs) *</label>
@@ -377,8 +334,6 @@ export default function AdminPage() {
                     <input style={s.input} type="number" min="0" placeholder="100" value={form.stock} onChange={e => set('stock', e.target.value)} />
                   </div>
                 </div>
-
-                {/* Tag */}
                 <div style={s.grid2}>
                   <div style={s.field}>
                     <label style={s.label}>BADGE TAG</label>
@@ -394,8 +349,6 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
-
-                {/* Rating */}
                 <div style={s.grid2}>
                   <div style={s.field}>
                     <label style={s.label}>RATING (0–5)</label>
@@ -406,7 +359,6 @@ export default function AdminPage() {
                     <input style={s.input} type="number" min="0" value={form.review_count} onChange={e => set('review_count', e.target.value)} />
                   </div>
                 </div>
-
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                   <button style={{ ...s.btn('primary'), flex: 1, padding: '0.85rem' }} onClick={handleSave} disabled={saving}>
                     {saving ? 'SAVING...' : editProduct ? 'UPDATE PRODUCT' : 'ADD PRODUCT'}
@@ -417,9 +369,8 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Delete Confirm */}
           {deleteConfirm && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
               <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '2rem', maxWidth: 360, textAlign: 'center' }}>
                 <p style={{ fontSize: '1.4rem', fontWeight: 300, marginBottom: '0.5rem' }}>Delete Product?</p>
                 <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', color: '#666', marginBottom: '1.5rem' }}>"{deleteConfirm.name}" will be permanently removed.</p>
@@ -431,8 +382,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Products Table */}
-          <div style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '8px', overflow: 'hidden' }}>
+          <div style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '8px', overflow: 'auto' }}>
             <table style={s.table}>
               <thead>
                 <tr style={{ background: '#0e0e0e' }}>
@@ -447,9 +397,7 @@ export default function AdminPage() {
                     {search ? 'No products match your search' : 'No products yet — click Add Product'}
                   </td></tr>
                 ) : filteredProducts.map(product => {
-                  const extras = product.image_urls
-                    ? product.image_urls.split('\n').map(u => u.trim()).filter(Boolean)
-                    : []
+                  const extras = product.image_urls ? product.image_urls.split('\n').map(u => u.trim()).filter(Boolean) : []
                   return (
                     <tr key={product.id} onMouseEnter={e => e.currentTarget.style.background = '#161616'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <td style={s.td}>
@@ -462,9 +410,7 @@ export default function AdminPage() {
                             <img key={i} src={url} alt={`extra-${i}`} style={{ width: 40, height: 50, objectFit: 'cover', borderRadius: 4, border: '1px solid #2a2a2a' }} onError={e => e.target.style.display = 'none'} />
                           ))}
                           {extras.length > 2 && (
-                            <div style={{ width: 40, height: 50, background: '#1e1e1e', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: '#666' }}>
-                              +{extras.length - 2}
-                            </div>
+                            <div style={{ width: 40, height: 50, background: '#1e1e1e', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: '#666' }}>+{extras.length - 2}</div>
                           )}
                         </div>
                       </td>
@@ -496,14 +442,12 @@ export default function AdminPage() {
         </>
       )}
 
-      {/* ORDERS TAB */}
       {!loading && tab === 'orders' && (
         <div>
-          {orders.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '4rem', color: '#444', fontFamily: 'DM Mono, monospace', fontSize: '0.75rem' }}>No orders yet</div>
-          ) : orders.map(order => (
-            <OrderCard key={order.id} order={order} onStatusChange={handleOrderStatus} />
-          ))}
+          {orders.length === 0
+            ? <div style={{ textAlign: 'center', padding: '4rem', color: '#444', fontFamily: 'DM Mono, monospace', fontSize: '0.75rem' }}>No orders yet</div>
+            : orders.map(order => <OrderCard key={order.id} order={order} onStatusChange={handleOrderStatus} />)
+          }
         </div>
       )}
     </div>
@@ -517,37 +461,50 @@ function OrderCard({ order, onStatusChange }) {
 
   return (
     <div style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '8px', marginBottom: '0.75rem', overflow: 'hidden' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1fr 1fr 1.2fr 1fr 1.2fr auto', alignItems: 'center', padding: '1rem 1.2rem', gap: '0.5rem', cursor: 'pointer' }}
-        onClick={() => setExpanded(e => !e)}>
-        <div>
-          <p style={{ ...mono, fontSize: '0.68rem', color: '#e8d5b7' }}>{order.order_number}</p>
-          <p style={{ ...mono, fontSize: '0.58rem', color: '#444', marginTop: '0.2rem' }}>{new Date(order.created_at).toLocaleDateString('en-PK', { dateStyle: 'medium' })}</p>
+      <div style={{ padding: '1rem 1.2rem', cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+          <span style={{ ...mono, fontSize: '0.72rem', color: '#e8d5b7' }}>{order.order_number}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <span style={{ ...mono, fontSize: '0.58rem', color: '#444' }}>
+              {new Date(order.created_at).toLocaleDateString('en-PK', { dateStyle: 'medium' })}
+            </span>
+            <span style={{ ...mono, fontSize: '0.75rem', color: '#555' }}>{expanded ? '▲' : '▼'}</span>
+          </div>
         </div>
-        <div>
-          <p style={{ fontSize: '0.95rem', color: '#f0ece4' }}>{order.customer_name}</p>
-          <p style={{ ...mono, fontSize: '0.6rem', color: '#555' }}>{order.customer_email}</p>
-          {order.customer_phone && <p style={{ ...mono, fontSize: '0.6rem', color: '#555' }}>{order.customer_phone}</p>}
+
+        <div style={{ marginBottom: '0.6rem' }}>
+          <p style={{ fontSize: '0.95rem', color: '#f0ece4', margin: '0 0 0.2rem' }}>{order.customer_name}</p>
+          <p style={{ ...mono, fontSize: '0.6rem', color: '#555', margin: 0 }}>{order.customer_email}</p>
+          {order.customer_phone && <p style={{ ...mono, fontSize: '0.6rem', color: '#555', margin: 0 }}>{order.customer_phone}</p>}
         </div>
-        <div style={{ ...mono, color: '#e8d5b7', fontSize: '0.9rem' }}>Rs {parseFloat(order.total_amount).toFixed(0)}</div>
-        <div style={{ ...mono, fontSize: '0.68rem', color: '#666', textTransform: 'uppercase' }}>{order.payment_method}</div>
-        <div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+          <span style={{ ...mono, color: '#e8d5b7', fontSize: '0.9rem' }}>Rs {parseFloat(order.total_amount).toFixed(0)}</span>
           <span style={{ display: 'inline-block', padding: '0.2rem 0.7rem', borderRadius: '20px', ...mono, fontSize: '0.62rem', background: `${STATUS_COLORS[order.status]}22`, color: STATUS_COLORS[order.status] }}>
             {order.status?.toUpperCase()}
           </span>
+          <span style={{ ...mono, fontSize: '0.65rem', color: '#555' }}>{order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}</span>
+          <span style={{ ...mono, fontSize: '0.65rem', color: '#666', textTransform: 'uppercase' }}>{order.payment_method}</span>
         </div>
-        <div style={{ ...mono, fontSize: '0.65rem', color: '#555' }}>{order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}</div>
+
         <div onClick={e => e.stopPropagation()}>
-          <select value={order.status} onChange={e => onStatusChange(order.id, e.target.value)}
-            style={{ background: '#161616', border: '1px solid #2a2a2a', color: '#888', padding: '0.3rem 0.6rem', ...mono, fontSize: '0.65rem', borderRadius: '4px', outline: 'none', cursor: 'pointer' }}>
-            {['pending','confirmed','shipped','delivered','cancelled'].map(st => <option key={st} value={st}>{st}</option>)}
+          <p style={{ ...mono, fontSize: '0.6rem', color: '#444', letterSpacing: '0.1em', margin: '0 0 0.3rem' }}>UPDATE STATUS</p>
+          <select
+            value={order.status}
+            onChange={e => onStatusChange(order.id, e.target.value)}
+            style={{ background: '#161616', border: '1px solid #2a2a2a', color: '#e8d5b7', padding: '0.5rem 0.8rem', ...mono, fontSize: '0.72rem', borderRadius: '4px', outline: 'none', cursor: 'pointer', width: '100%', maxWidth: 280 }}
+          >
+            {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(st => (
+              <option key={st} value={st}>{st.charAt(0).toUpperCase() + st.slice(1)}</option>
+            ))}
           </select>
         </div>
-        <div style={{ ...mono, fontSize: '0.75rem', color: '#555', paddingLeft: '0.5rem' }}>{expanded ? '▲' : '▼'}</div>
       </div>
 
       {expanded && (
         <div style={{ borderTop: '1px solid #1e1e1e', padding: '1.5rem 1.2rem', background: '#0e0e0e' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div>
               <p style={{ ...mono, fontSize: '0.62rem', color: '#444', letterSpacing: '0.15em', marginBottom: '0.75rem' }}>CUSTOMER DETAILS</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -560,7 +517,7 @@ function OrderCard({ order, onStatusChange }) {
             <div>
               <p style={{ ...mono, fontSize: '0.62rem', color: '#444', letterSpacing: '0.15em', marginBottom: '0.75rem' }}>SHIPPING ADDRESS</p>
               <p style={{ fontSize: '0.9rem', color: '#aaa', lineHeight: 1.6 }}>
-                {[order.address, order.city, order.country].filter(Boolean).join(', ') || '—'}
+                {[order.shipping_address, order.city, order.country].filter(Boolean).join(', ') || '—'}
               </p>
               {order.notes && (
                 <div style={{ marginTop: '0.75rem' }}>
@@ -570,23 +527,25 @@ function OrderCard({ order, onStatusChange }) {
               )}
             </div>
           </div>
+
           <p style={{ ...mono, fontSize: '0.62rem', color: '#444', letterSpacing: '0.15em', marginBottom: '0.75rem' }}>ORDER ITEMS</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {order.items?.length > 0 ? order.items.map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#111', borderRadius: '6px', padding: '0.75rem 1rem' }}>
                 {item.image_url
-                  ? <img src={item.image_url} alt={item.product_name} style={{ width: 40, height: 50, objectFit: 'cover', borderRadius: 4 }} onError={e => e.target.style.display='none'} />
+                  ? <img src={item.image_url} alt={item.product_name} style={{ width: 40, height: 50, objectFit: 'cover', borderRadius: 4 }} onError={e => e.target.style.display = 'none'} />
                   : <div style={{ width: 40, height: 50, background: '#1e1e1e', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📦</div>
                 }
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: '0.95rem', color: '#f0ece4' }}>{item.product_name}</p>
-                  {item.size && <p style={{ ...mono, fontSize: '0.62rem', color: '#666' }}>Size: {item.size}</p>}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '0.95rem', color: '#f0ece4', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</p>
+                  {item.size && <p style={{ ...mono, fontSize: '0.62rem', color: '#666', margin: 0 }}>Size: {item.size}</p>}
                 </div>
-                <div style={{ ...mono, fontSize: '0.75rem', color: '#888' }}>x{item.quantity}</div>
-                <div style={{ ...mono, fontSize: '0.82rem', color: '#e8d5b7' }}>Rs {(parseFloat(item.price) * item.quantity).toFixed(0)}</div>
+                <div style={{ ...mono, fontSize: '0.75rem', color: '#888', whiteSpace: 'nowrap' }}>x{item.quantity}</div>
+                <div style={{ ...mono, fontSize: '0.82rem', color: '#e8d5b7', whiteSpace: 'nowrap' }}>Rs {(parseFloat(item.price) * item.quantity).toFixed(0)}</div>
               </div>
             )) : <p style={{ ...mono, fontSize: '0.72rem', color: '#444' }}>No items found</p>}
           </div>
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #1e1e1e' }}>
             <p style={{ ...mono, fontSize: '0.9rem', color: '#e8d5b7' }}>TOTAL: <strong>Rs {parseFloat(order.total_amount).toFixed(0)}</strong></p>
           </div>
