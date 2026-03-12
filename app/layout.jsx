@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import Notification from '../components/Notification'
 import WhatsAppButton from '../components/WhatsAppButton'
+import CheckoutModal from '../components/CheckoutModal'
 import './globals.css'
 
 export const metadata = {
@@ -33,6 +34,8 @@ export default function RootLayout({ children }) {
             </div>
             <Notification />
             <WhatsAppButton />
+            {/* ✅ FIXED: CheckoutModal is at root level — never unmounts when CartPanel closes */}
+            <CheckoutModal />
           </CartProvider>
         </AuthProvider>
       </body>

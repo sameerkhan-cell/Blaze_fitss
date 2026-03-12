@@ -12,7 +12,6 @@ export function CartProvider({ children }) {
   const [notification, setNotification] = useState('')
   const [loading, setLoading]         = useState(false)
 
-  // Fetch cart from server on mount
   const fetchCart = useCallback(async () => {
     try {
       const res = await fetch('/api/cart')
@@ -99,12 +98,20 @@ export function CartProvider({ children }) {
     }
   }
 
+  // ✅ FIXED: single function — closes cart AND opens checkout atomically
+  // Avoids the race condition where CartPanel unmounts before checkoutOpen=true takes effect
+  const openCheckout = useCallback(() => {
+    setCartOpen(false)
+    setCheckoutOpen(true)
+  }, [])
+
   const cartCount = cart.items?.reduce((sum, i) => sum + i.quantity, 0) ?? 0
 
   return (
     <CartContext.Provider value={{
       cart, cartCount, cartOpen, setCartOpen,
       checkoutOpen, setCheckoutOpen,
+      openCheckout,
       notification, loading,
       addToCart, updateItem, removeItem, placeOrder,
     }}>

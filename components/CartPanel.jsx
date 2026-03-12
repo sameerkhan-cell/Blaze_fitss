@@ -2,10 +2,9 @@
 // components/CartPanel.jsx
 
 import { useCart } from '../context/CartContext'
-import CheckoutModal from './CheckoutModal'
 
 export default function CartPanel({ onClose }) {
-  const { cart, cartCount, updateItem, removeItem, checkoutOpen, setCheckoutOpen } = useCart()
+  const { cart, cartCount, updateItem, removeItem, openCheckout } = useCart()
 
   return (
     <>
@@ -42,19 +41,10 @@ export default function CartPanel({ onClose }) {
                   )}
                   <p className="cart-item__price">Rs{(parseFloat(item.price) * item.quantity).toFixed(2)}</p>
                   <div className="cart-item__qty-row">
-                    <button
-                      className="cart-item__qty-btn"
-                      onClick={() => updateItem(item.id, item.quantity - 1)}
-                    >−</button>
+                    <button className="cart-item__qty-btn" onClick={() => updateItem(item.id, item.quantity - 1)}>−</button>
                     <span className="cart-item__qty-val">{item.quantity}</span>
-                    <button
-                      className="cart-item__qty-btn"
-                      onClick={() => updateItem(item.id, item.quantity + 1)}
-                    >+</button>
-                    <button
-                      className="cart-item__remove"
-                      onClick={() => removeItem(item.id)}
-                    >remove</button>
+                    <button className="cart-item__qty-btn" onClick={() => updateItem(item.id, item.quantity + 1)}>+</button>
+                    <button className="cart-item__remove" onClick={() => removeItem(item.id)}>remove</button>
                   </div>
                 </div>
               </div>
@@ -68,17 +58,13 @@ export default function CartPanel({ onClose }) {
               <span className="cart-panel__total-label">TOTAL</span>
               <span className="cart-panel__total-val">Rs{cart.total?.toFixed(2)}</span>
             </div>
-            <button
-              className="cart-panel__checkout-btn"
-              onClick={() => { setCheckoutOpen(true); onClose(); }}
-            >
+            {/* ✅ FIXED: openCheckout() atomically sets checkoutOpen=true + closes cart */}
+            <button className="cart-panel__checkout-btn" onClick={openCheckout}>
               CHECKOUT
             </button>
           </div>
         )}
       </aside>
-
-      {checkoutOpen && <CheckoutModal />}
     </>
   )
 }
