@@ -15,6 +15,7 @@ const links = [
   { href: '/footballshoes', label: 'Football Shoes'},
   { href: '/footballs',     label: 'Footballs'     },
   { href: '/shopforkids',   label: 'Kids'          },
+  { href: '/custom-kits',   label: 'Custom Kits', highlight: true },
 ]
 
 export default function Navbar() {
@@ -45,9 +46,16 @@ export default function Navbar() {
           </Link>
 
           <nav className="navbar__nav">
-            {links.map(({ href, label }) => (
+            {links.map(({ href, label, highlight }) => (
               <Link key={href} href={href}
-                className={`navbar__link${pathname === href ? ' navbar__link--active' : ''}`}>
+                className={`navbar__link${pathname === href ? ' navbar__link--active' : ''}`}
+                style={highlight ? {
+                  color: '#e8d5b7',
+                  border: '1px solid rgba(232,213,183,0.3)',
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '4px',
+                  letterSpacing: '0.08em',
+                } : {}}>
                 {label}
               </Link>
             ))}
@@ -107,9 +115,10 @@ export default function Navbar() {
 
         {menuOpen && (
           <nav className="navbar__mobile-menu">
-            {links.map(({ href, label }) => (
+            {links.map(({ href, label, highlight }) => (
               <Link key={href} href={href}
                 className={`navbar__mobile-link${pathname === href ? ' navbar__mobile-link--active' : ''}`}
+                style={highlight ? { color: '#e8d5b7' } : {}}
                 onClick={() => setMenuOpen(false)}>{label}</Link>
             ))}
             {isLoggedIn ? (
