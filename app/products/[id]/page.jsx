@@ -163,8 +163,10 @@ export default function ProductDetailPage() {
   )
 
   const images = getImages()
-  const sizes  = SIZE_CHART.map(r => r.size)
-
+  // ✅ Parse available sizes from product DB field (comma-separated)
+  const availableSizes = product.sizes
+    ? product.sizes.split(',').map(s => s.trim()).filter(Boolean)
+    : []
   return (
     <div style={{ minHeight: '100vh', maxWidth: 1400, margin: '0 auto', padding: '2rem' }}>
 
@@ -272,21 +274,41 @@ export default function ProductDetailPage() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                {sizes.map(s => (
-                  <button key={s} onClick={() => setSelectedSize(s === selectedSize ? '' : s)}
-                    style={{
-                      width: 46, height: 46, border: `1.5px solid ${selectedSize === s ? '#e8d5b7' : '#2a2a2a'}`,
-                      borderRadius: 6, background: selectedSize === s ? 'rgba(232,213,183,0.1)' : 'transparent',
-                      color: selectedSize === s ? '#e8d5b7' : '#666',
-                      fontFamily: 'DM Mono, monospace', fontSize: '0.72rem',
-                      cursor: 'pointer', transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => { if (selectedSize !== s) { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#aaa' }}}
-                    onMouseLeave={e => { if (selectedSize !== s) { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#666' }}}>
-                    {s}
-                  </button>
-                ))}
+                {SIZE_CHART.map(({ size: s }) => {
+                  const avail    = availableSizes.includes(s)
+                  const selected = selectedSize === s
+                  return (
+                    <button key={s}
+                      onClick={() => avail && setSelectedSize(s === selected ? '' : s)}
+                      disabled={!avail}
+                      title={avail ? s : `${s} — not available`}
+                      style={{
+                        width: 46, height: 46, position: 'relative',
+                        border: `1.5px solid ${selected ? '#e8d5b7' : avail ? '#2a2a2a' : '#181818'}`,
+                        borderRadius: 6, overflow: 'hidden',
+                        background: selected ? 'rgba(232,213,183,0.1)' : 'transparent',
+                        color: selected ? '#e8d5b7' : avail ? '#666' : '#2a2a2a',
+                        fontFamily: 'DM Mono, monospace', fontSize: '0.72rem',
+                        cursor: avail ? 'pointer' : 'not-allowed',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { if (avail && !selected) { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#aaa' }}}
+                      onMouseLeave={e => { if (avail && !selected) { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#666' }}}>
+                      {s}
+                      {!avail && (
+                        <svg viewBox="0 0 46 46" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                          <line x1="6" y1="40" x2="40" y2="6" stroke="#2a2a2a" strokeWidth="1.5" />
+                        </svg>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
+              {availableSizes.length > 0 && (
+                <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.58rem', color: '#333', marginTop: '0.4rem', letterSpacing: '0.08em' }}>
+                  Crossed-out sizes are not available for this product
+                </p>
+              )}
             </div>
 
             {/* ── QUANTITY ── */}
@@ -335,18 +357,26 @@ export default function ProductDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {SIZE_CHART.map((row, i) => (
-                      <tr key={row.size}
-                        onClick={() => setSelectedSize(row.size)}
-                        style={{
-                          background: selectedSize === row.size ? 'rgba(232,213,183,0.07)' : i % 2 === 0 ? '#0a0a0a' : '#0e0e0e',
-                          cursor: 'pointer', transition: 'background 0.15s',
-                        }}>
-                        <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: 'DM Mono, monospace', fontWeight: 600, color: selectedSize === row.size ? '#e8d5b7' : '#888', borderBottom: '1px solid #141414' }}>{row.size}</td>
-                        <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: 'DM Mono, monospace', color: '#666', borderBottom: '1px solid #141414' }}>{row.chest}</td>
-                        <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: 'DM Mono, monospace', color: '#666', borderBottom: '1px solid #141414' }}>{row.length}</td>
-                      </tr>
-                    ))}
+                    {SIZE_CHART.map((row, i) => {
+                      const avail    = availableSizes.includes(row.size)
+                      const selected = selectedSize === row.size
+                      return (
+                        <tr key={row.size}
+                          onClick={() => avail && setSelectedSize(row.size)}
+                          style={{
+                            background: selected ? 'rgba(232,213,183,0.07)' : i % 2 === 0 ? '#0a0a0a' : '#0e0e0e',
+                            cursor: avail ? 'pointer' : 'not-allowed',
+                            opacity: avail ? 1 : 0.35,
+                            transition: 'background 0.15s',
+                          }}>
+                          <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: 'DM Mono, monospace', fontWeight: 600, color: selected ? '#e8d5b7' : avail ? '#888' : '#444', borderBottom: '1px solid #141414' }}>
+                            {avail ? row.size : <span style={{ textDecoration: 'line-through' }}>{row.size}</span>}
+                          </td>
+                          <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: 'DM Mono, monospace', color: avail ? '#666' : '#333', borderBottom: '1px solid #141414' }}>{avail ? row.chest : '—'}</td>
+                          <td style={{ padding: '7px 10px', textAlign: 'center', fontFamily: 'DM Mono, monospace', color: avail ? '#666' : '#333', borderBottom: '1px solid #141414' }}>{avail ? row.length : '—'}</td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

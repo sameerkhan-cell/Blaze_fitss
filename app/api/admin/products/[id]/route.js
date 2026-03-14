@@ -5,12 +5,17 @@ import { query } from '../../../../../lib/db'
 export async function PUT(request, { params }) {
   try {
     const body = await request.json()
-    const { category_id, name, description, price, image_url, image_urls, tag, tag_color, rating, review_count, stock, is_active } = body
+    const {
+      category_id, name, description, price, image_url, image_urls,
+      tag, tag_color, rating, review_count, stock, is_active,
+      sizes, // ✅ added
+    } = body
 
     await query(`
       UPDATE products SET
         category_id=?, name=?, description=?, price=?, image_url=?, image_urls=?,
-        tag=?, tag_color=?, rating=?, review_count=?, stock=?, is_active=?, updated_at=NOW()
+        tag=?, tag_color=?, rating=?, review_count=?, stock=?, is_active=?,
+        sizes=?, updated_at=NOW()
       WHERE id=?
     `, [
       Number(category_id),
@@ -25,6 +30,7 @@ export async function PUT(request, { params }) {
       parseInt(review_count) || 0,
       parseInt(stock) || 0,
       is_active !== undefined ? (is_active ? 1 : 0) : 1,
+      sizes?.trim() || null, // ✅ added
       Number(params.id),
     ])
 

@@ -1,9 +1,11 @@
 'use client'
-
+ 
 import { useState, useEffect } from 'react'
-
+ 
 const ADMIN_PASSWORD = 'sameerkhan123.'
-
+ 
+const ALL_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL']
+ 
 const TAG_COLORS = [
   { label: 'Gold',   value: '#e8d5b7' },
   { label: 'Green',  value: '#10b981' },
@@ -12,33 +14,26 @@ const TAG_COLORS = [
   { label: 'Purple', value: '#6366f1' },
   { label: 'Blue',   value: '#38bdf8' },
 ]
-
-const STATUS_COLORS = {
-  pending:   '#f59e0b',
-  confirmed: '#818cf8',
-  shipped:   '#38bdf8',
-  delivered: '#34d399',
-  cancelled: '#f87171',
-}
-
+ 
 const DEFAULT_CATEGORIES = [
   { id: 1, name: 'Jerseys' },
   { id: 2, name: 'Football Shoes' },
   { id: 3, name: 'Footballs' },
   { id: 4, name: 'Shop for Kids' },
 ]
-
+ 
 const emptyForm = {
   category_id: '', name: '', description: '', price: '',
   image_url: '', image_urls: '', tag: '', tag_color: '#10b981',
   rating: '4.5', review_count: '0', stock: '100',
+  sizes: [],
 }
-
+ 
 function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
-
+ 
   const handleLogin = () => {
     setLoading(true)
     setTimeout(() => {
@@ -51,7 +46,7 @@ function AdminLogin({ onLogin }) {
       }
     }, 600)
   }
-
+ 
   return (
     <div style={{ minHeight: '100vh', background: '#0c0c0c', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Cormorant Garamond, serif' }}>
       <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '3rem 2.5rem', width: '100%', maxWidth: 400, textAlign: 'center' }}>
@@ -81,7 +76,7 @@ function AdminLogin({ onLogin }) {
     </div>
   )
 }
-
+ 
 export default function AdminPage() {
   const [authed, setAuthed]               = useState(false)
   const [checking, setChecking]           = useState(true)
@@ -97,15 +92,15 @@ export default function AdminPage() {
   const [message, setMessage]             = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [search, setSearch]               = useState('')
-
+ 
   useEffect(() => {
     const isAuthed = sessionStorage.getItem('bf_admin') === '1'
     setAuthed(isAuthed)
     setChecking(false)
   }, [])
-
+ 
   useEffect(() => { if (authed) loadAll() }, [authed])
-
+ 
   const loadAll = async () => {
     setLoading(true)
     try {
@@ -126,17 +121,17 @@ export default function AdminPage() {
       setLoading(false)
     }
   }
-
+ 
   const handleLogout = () => { sessionStorage.removeItem('bf_admin'); setAuthed(false) }
-
+ 
   const showMsg = (text, type = 'success') => {
     setMessage({ text, type })
     setTimeout(() => setMessage(''), 3000)
   }
-
+ 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
   const openAdd = () => { setEditProduct(null); setForm(emptyForm); setShowForm(true) }
-
+ 
   const openEdit = (product) => {
     setEditProduct(product)
     setForm({
@@ -151,10 +146,22 @@ export default function AdminPage() {
       rating:       product.rating,
       review_count: product.review_count,
       stock:        product.stock,
+      sizes: product.sizes
+        ? product.sizes.split(',').map(s => s.trim()).filter(Boolean)
+        : [],
     })
     setShowForm(true)
   }
-
+ 
+  const toggleSize = (size) => {
+    setForm(f => ({
+      ...f,
+      sizes: f.sizes.includes(size)
+        ? f.sizes.filter(s => s !== size)
+        : [...f.sizes, size],
+    }))
+  }
+ 
   const handleSave = async () => {
     if (saving) return
     if (!form.name.trim())              return showMsg('Product name is required', 'error')
@@ -164,8 +171,9 @@ export default function AdminPage() {
     try {
       const url    = editProduct ? `/api/admin/products/${editProduct.id}` : '/api/admin/products'
       const method = editProduct ? 'PUT' : 'POST'
-      const res    = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-      const json   = await res.json()
+      const payload = { ...form, sizes: form.sizes.join(',') }
+      const res  = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const json = await res.json()
       if (!json.success) throw new Error(json.error)
       if (editProduct) {
         setProducts(prev => prev.map(p => p.id === editProduct.id ? json.data : p))
@@ -181,7 +189,7 @@ export default function AdminPage() {
       setSaving(false)
     }
   }
-
+ 
   const handleDelete = async (id) => {
     try {
       const res  = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' })
@@ -192,7 +200,7 @@ export default function AdminPage() {
       showMsg('Product deleted')
     } catch (e) { showMsg(e.message, 'error') }
   }
-
+ 
   const handleOrderStatus = async (orderId, status) => {
     try {
       const res  = await fetch(`/api/admin/orders/${orderId}`, {
@@ -206,17 +214,17 @@ export default function AdminPage() {
       showMsg('Order status updated!')
     } catch (e) { showMsg(e.message, 'error') }
   }
-
+ 
   const filteredProducts = products.filter(p =>
     p.name?.toLowerCase().includes(search.toLowerCase()) ||
     p.category_name?.toLowerCase().includes(search.toLowerCase())
   )
-
+ 
   if (checking) return null
   if (!authed)  return <AdminLogin onLogin={() => setAuthed(true)} />
-
+ 
   const s = {
-   page: { minHeight: '100vh', background: '#0c0c0c', color: '#f0ece4', fontFamily: 'Cormorant Garamond, serif', padding: '1rem' },
+    page:  { minHeight: '100vh', background: '#0c0c0c', color: '#f0ece4', fontFamily: 'Cormorant Garamond, serif', padding: '1rem' },
     header:{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', borderBottom: '1px solid #1e1e1e', paddingBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' },
     tabs:  { display: 'flex', gap: '0.25rem', marginBottom: '2rem' },
     tab:   (a) => ({ background: 'none', border: 'none', borderBottom: `2px solid ${a ? '#e8d5b7' : 'transparent'}`, color: a ? '#e8d5b7' : '#555', fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', letterSpacing: '0.15em', padding: '0.5rem 1rem 0.3rem', cursor: 'pointer' }),
@@ -228,13 +236,12 @@ export default function AdminPage() {
     label: { display: 'block', fontFamily: 'DM Mono, monospace', fontSize: '0.65rem', letterSpacing: '0.15em', color: '#555', marginBottom: '0.35rem' },
     field: { marginBottom: '1rem' },
     grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' },
-    
   }
-
+ 
   const extraImagePreviews = form.image_urls
     ? form.image_urls.split('\n').map(u => u.trim()).filter(Boolean)
     : []
-
+ 
   return (
     <div style={s.page}>
       <div style={s.header}>
@@ -247,7 +254,7 @@ export default function AdminPage() {
           <button style={s.btn('ghost')} onClick={handleLogout}>LOGOUT</button>
         </div>
       </div>
-
+ 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         {[
           { label: 'Total Products', value: products.length, color: '#e8d5b7' },
@@ -261,28 +268,28 @@ export default function AdminPage() {
           </div>
         ))}
       </div>
-
+ 
       <div style={s.tabs}>
         {['products', 'orders'].map(t => (
           <button key={t} style={s.tab(tab === t)} onClick={() => setTab(t)}>{t.toUpperCase()}</button>
         ))}
       </div>
-
+ 
       {message && (
         <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', background: message.type === 'error' ? '#ef4444' : '#e8d5b7', color: '#0c0c0c', padding: '0.75rem 1.5rem', fontFamily: 'DM Mono, monospace', fontSize: '0.75rem', borderRadius: '4px', zIndex: 999, whiteSpace: 'nowrap' }}>
           {message.type === 'error' ? '✕' : '✓'} {message.text}
         </div>
       )}
-
+ 
       {loading && <div style={{ textAlign: 'center', padding: '4rem', color: '#444', fontFamily: 'DM Mono, monospace', fontSize: '0.8rem' }}>Loading...</div>}
-
+ 
       {!loading && tab === 'products' && (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
             <input style={{ ...s.input, maxWidth: 260 }} placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} />
             <button style={s.btn('primary')} onClick={openAdd}>+ ADD PRODUCT</button>
           </div>
-
+ 
           {showForm && (
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
               <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}>
@@ -290,6 +297,7 @@ export default function AdminPage() {
                   <h2 style={{ fontSize: '1.6rem', fontWeight: 300 }}>{editProduct ? 'Edit Product' : 'Add New Product'}</h2>
                   <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: '#555', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
                 </div>
+ 
                 <div style={s.field}>
                   <label style={s.label}>CATEGORY *</label>
                   <select value={form.category_id} onChange={e => set('category_id', e.target.value)} style={{ ...s.input, appearance: 'none' }}>
@@ -297,10 +305,12 @@ export default function AdminPage() {
                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
+ 
                 <div style={s.field}>
                   <label style={s.label}>PRODUCT NAME *</label>
                   <input style={s.input} placeholder="e.g. Argentina Home 2026" value={form.name} onChange={e => set('name', e.target.value)} />
                 </div>
+ 
                 <div style={s.field}>
                   <label style={s.label}>MAIN IMAGE URL</label>
                   <input style={s.input} placeholder="/images/products/jersey1.webp" value={form.image_url} onChange={e => set('image_url', e.target.value)} />
@@ -308,6 +318,7 @@ export default function AdminPage() {
                     <img src={form.image_url} alt="preview" style={{ width: 64, height: 80, objectFit: 'cover', borderRadius: 4, marginTop: 8 }} onError={e => e.target.style.display = 'none'} />
                   )}
                 </div>
+ 
                 <div style={s.field}>
                   <label style={s.label}>EXTRA IMAGES (one path per line)</label>
                   <textarea style={{ ...s.input, minHeight: 90, resize: 'vertical', fontSize: '0.82rem' }}
@@ -321,10 +332,12 @@ export default function AdminPage() {
                     </div>
                   )}
                 </div>
+ 
                 <div style={s.field}>
                   <label style={s.label}>DESCRIPTION</label>
                   <textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Product description..." style={{ ...s.input, minHeight: 80, resize: 'vertical' }} />
                 </div>
+ 
                 <div style={s.grid2}>
                   <div style={s.field}>
                     <label style={s.label}>PRICE (Rs) *</label>
@@ -335,6 +348,51 @@ export default function AdminPage() {
                     <input style={s.input} type="number" min="0" placeholder="100" value={form.stock} onChange={e => set('stock', e.target.value)} />
                   </div>
                 </div>
+ 
+                {/* ── SIZES SELECTOR ── */}
+                <div style={s.field}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <label style={{ ...s.label, margin: 0 }}>AVAILABLE SIZES</label>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button type="button" onClick={() => setForm(f => ({ ...f, sizes: [...ALL_SIZES] }))}
+                        style={{ background: 'none', border: 'none', fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: '#e8d5b7', cursor: 'pointer', letterSpacing: '0.1em', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                        SELECT ALL
+                      </button>
+                      <button type="button" onClick={() => setForm(f => ({ ...f, sizes: [] }))}
+                        style={{ background: 'none', border: 'none', fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: '#555', cursor: 'pointer', letterSpacing: '0.1em', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                        CLEAR
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {ALL_SIZES.map(size => {
+                      const active = form.sizes.includes(size)
+                      return (
+                        <button key={size} type="button" onClick={() => toggleSize(size)}
+                          style={{
+                            width: 50, height: 50, position: 'relative',
+                            border: `1.5px solid ${active ? '#e8d5b7' : '#2a2a2a'}`,
+                            borderRadius: 8,
+                            background: active ? 'rgba(232,213,183,0.12)' : '#0e0e0e',
+                            color: active ? '#e8d5b7' : '#444',
+                            fontFamily: 'DM Mono, monospace', fontSize: '0.72rem',
+                            cursor: 'pointer', transition: 'all 0.15s',
+                          }}>
+                          {size}
+                          {active && (
+                            <span style={{ position: 'absolute', top: 2, right: 4, fontSize: '0.48rem', color: '#e8d5b7', lineHeight: 1 }}>✓</span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.58rem', color: '#3a3a3a', marginTop: '0.5rem', letterSpacing: '0.08em' }}>
+                    {form.sizes.length === 0
+                      ? 'No sizes selected — all sizes shown as unavailable on product page'
+                      : `Selected (${form.sizes.length}): ${form.sizes.join(', ')}`}
+                  </p>
+                </div>
+ 
                 <div style={s.grid2}>
                   <div style={s.field}>
                     <label style={s.label}>BADGE TAG</label>
@@ -350,6 +408,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </div>
+ 
                 <div style={s.grid2}>
                   <div style={s.field}>
                     <label style={s.label}>RATING (0–5)</label>
@@ -360,6 +419,7 @@ export default function AdminPage() {
                     <input style={s.input} type="number" min="0" value={form.review_count} onChange={e => set('review_count', e.target.value)} />
                   </div>
                 </div>
+ 
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                   <button style={{ ...s.btn('primary'), flex: 1, padding: '0.85rem' }} onClick={handleSave} disabled={saving}>
                     {saving ? 'SAVING...' : editProduct ? 'UPDATE PRODUCT' : 'ADD PRODUCT'}
@@ -369,7 +429,7 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-
+ 
           {deleteConfirm && (
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
               <div style={{ background: '#111', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '2rem', maxWidth: 360, textAlign: 'center' }}>
@@ -382,23 +442,24 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-
+ 
           <div style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '8px', overflow: 'auto' }}>
             <table style={s.table}>
               <thead>
                 <tr style={{ background: '#0e0e0e' }}>
-                  {['Images','Product','Category','Price','Stock','Tag','Rating','Actions'].map(h => (
+                  {['Images','Product','Category','Price','Stock','Sizes','Tag','Rating','Actions'].map(h => (
                     <th key={h} style={s.th}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredProducts.length === 0 ? (
-                  <tr><td colSpan={8} style={{ ...s.td, textAlign: 'center', color: '#444', fontFamily: 'DM Mono, monospace', fontSize: '0.75rem', padding: '3rem' }}>
+                  <tr><td colSpan={9} style={{ ...s.td, textAlign: 'center', color: '#444', fontFamily: 'DM Mono, monospace', fontSize: '0.75rem', padding: '3rem' }}>
                     {search ? 'No products match your search' : 'No products yet — click Add Product'}
                   </td></tr>
                 ) : filteredProducts.map(product => {
-                  const extras = product.image_urls ? product.image_urls.split('\n').map(u => u.trim()).filter(Boolean) : []
+                  const extras   = product.image_urls ? product.image_urls.split('\n').map(u => u.trim()).filter(Boolean) : []
+                  const sizesArr = product.sizes ? product.sizes.split(',').map(s => s.trim()).filter(Boolean) : []
                   return (
                     <tr key={product.id} onMouseEnter={e => e.currentTarget.style.background = '#161616'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <td style={s.td}>
@@ -423,6 +484,17 @@ export default function AdminPage() {
                       <td style={{ ...s.td, fontFamily: 'DM Mono, monospace', fontSize: '0.9rem', color: '#e8d5b7' }}>Rs {parseFloat(product.price).toFixed(0)}</td>
                       <td style={{ ...s.td, fontFamily: 'DM Mono, monospace', fontSize: '0.8rem', color: product.stock < 10 ? '#f87171' : '#888' }}>{product.stock}</td>
                       <td style={s.td}>
+                        {sizesArr.length > 0 ? (
+                          <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                            {sizesArr.map(sz => (
+                              <span key={sz} style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.58rem', background: '#1e1e1e', color: '#e8d5b7', padding: '2px 6px', borderRadius: 3, border: '1px solid #2a2a2a' }}>{sz}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#333', fontFamily: 'DM Mono, monospace', fontSize: '0.65rem' }}>none</span>
+                        )}
+                      </td>
+                      <td style={s.td}>
                         {product.tag
                           ? <span style={{ background: product.tag_color || '#e8d5b7', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: 3, fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', fontWeight: 600 }}>{product.tag}</span>
                           : <span style={{ color: '#333' }}>—</span>}
@@ -442,7 +514,7 @@ export default function AdminPage() {
           </div>
         </>
       )}
-
+ 
       {!loading && tab === 'orders' && (
         <div>
           {orders.length === 0
@@ -454,16 +526,15 @@ export default function AdminPage() {
     </div>
   )
 }
-
+ 
 function OrderCard({ order, onStatusChange }) {
   const [expanded, setExpanded] = useState(false)
   const STATUS_COLORS = { pending: '#f59e0b', confirmed: '#818cf8', shipped: '#38bdf8', delivered: '#34d399', cancelled: '#f87171' }
   const mono = { fontFamily: 'DM Mono, monospace' }
-
+ 
   return (
     <div style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: '8px', marginBottom: '0.75rem', overflow: 'hidden' }}>
       <div style={{ padding: '1rem 1.2rem', cursor: 'pointer' }} onClick={() => setExpanded(e => !e)}>
-
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
           <span style={{ ...mono, fontSize: '0.72rem', color: '#e8d5b7' }}>{order.order_number}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -473,13 +544,11 @@ function OrderCard({ order, onStatusChange }) {
             <span style={{ ...mono, fontSize: '0.75rem', color: '#555' }}>{expanded ? '▲' : '▼'}</span>
           </div>
         </div>
-
         <div style={{ marginBottom: '0.6rem' }}>
           <p style={{ fontSize: '0.95rem', color: '#f0ece4', margin: '0 0 0.2rem' }}>{order.customer_name}</p>
           <p style={{ ...mono, fontSize: '0.6rem', color: '#555', margin: 0 }}>{order.customer_email}</p>
           {order.customer_phone && <p style={{ ...mono, fontSize: '0.6rem', color: '#555', margin: 0 }}>{order.customer_phone}</p>}
         </div>
-
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           <span style={{ ...mono, color: '#e8d5b7', fontSize: '0.9rem' }}>Rs {parseFloat(order.total_amount).toFixed(0)}</span>
           <span style={{ display: 'inline-block', padding: '0.2rem 0.7rem', borderRadius: '20px', ...mono, fontSize: '0.62rem', background: `${STATUS_COLORS[order.status]}22`, color: STATUS_COLORS[order.status] }}>
@@ -488,21 +557,16 @@ function OrderCard({ order, onStatusChange }) {
           <span style={{ ...mono, fontSize: '0.65rem', color: '#555' }}>{order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}</span>
           <span style={{ ...mono, fontSize: '0.65rem', color: '#666', textTransform: 'uppercase' }}>{order.payment_method}</span>
         </div>
-
         <div onClick={e => e.stopPropagation()}>
           <p style={{ ...mono, fontSize: '0.6rem', color: '#444', letterSpacing: '0.1em', margin: '0 0 0.3rem' }}>UPDATE STATUS</p>
-          <select
-            value={order.status}
-            onChange={e => onStatusChange(order.id, e.target.value)}
-            style={{ background: '#161616', border: '1px solid #2a2a2a', color: '#e8d5b7', padding: '0.5rem 0.8rem', ...mono, fontSize: '0.72rem', borderRadius: '4px', outline: 'none', cursor: 'pointer', width: '100%', maxWidth: 280 }}
-          >
+          <select value={order.status} onChange={e => onStatusChange(order.id, e.target.value)}
+            style={{ background: '#161616', border: '1px solid #2a2a2a', color: '#e8d5b7', padding: '0.5rem 0.8rem', ...mono, fontSize: '0.72rem', borderRadius: '4px', outline: 'none', cursor: 'pointer', width: '100%', maxWidth: 280 }}>
             {['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(st => (
               <option key={st} value={st}>{st.charAt(0).toUpperCase() + st.slice(1)}</option>
             ))}
           </select>
         </div>
       </div>
-
       {expanded && (
         <div style={{ borderTop: '1px solid #1e1e1e', padding: '1.5rem 1.2rem', background: '#0e0e0e' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
@@ -528,7 +592,6 @@ function OrderCard({ order, onStatusChange }) {
               )}
             </div>
           </div>
-
           <p style={{ ...mono, fontSize: '0.62rem', color: '#444', letterSpacing: '0.15em', marginBottom: '0.75rem' }}>ORDER ITEMS</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {order.items?.length > 0 ? order.items.map((item, i) => (
@@ -546,7 +609,6 @@ function OrderCard({ order, onStatusChange }) {
               </div>
             )) : <p style={{ ...mono, fontSize: '0.72rem', color: '#444' }}>No items found</p>}
           </div>
-
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #1e1e1e' }}>
             <p style={{ ...mono, fontSize: '0.9rem', color: '#e8d5b7' }}>TOTAL: <strong>Rs {parseFloat(order.total_amount).toFixed(0)}</strong></p>
           </div>
@@ -555,7 +617,7 @@ function OrderCard({ order, onStatusChange }) {
     </div>
   )
 }
-
+ 
 function Detail({ label, value }) {
   return (
     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
@@ -563,6 +625,4 @@ function Detail({ label, value }) {
       <span style={{ fontSize: '0.9rem', color: '#ccc' }}>{value}</span>
     </div>
   )
-
-
 }

@@ -19,15 +19,20 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { category_id, name, description, price, image_url, image_urls, tag, tag_color, rating, review_count, stock } = body
+    const {
+      category_id, name, description, price, image_url, image_urls,
+      tag, tag_color, rating, review_count, stock,
+      sizes, // ✅ added
+    } = body
 
     if (!name?.trim())        return NextResponse.json({ success: false, error: 'Name is required' }, { status: 400 })
     if (!category_id)         return NextResponse.json({ success: false, error: 'Category is required' }, { status: 400 })
     if (!price || price <= 0) return NextResponse.json({ success: false, error: 'Valid price is required' }, { status: 400 })
 
     const [result] = await query(`
-      INSERT INTO products (category_id, name, description, price, image_url, image_urls, tag, tag_color, rating, review_count, stock, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+      INSERT INTO products
+        (category_id, name, description, price, image_url, image_urls, tag, tag_color, rating, review_count, stock, sizes, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `, [
       Number(category_id),
       name.trim(),
@@ -40,6 +45,7 @@ export async function POST(request) {
       parseFloat(rating) || 4.5,
       parseInt(review_count) || 0,
       parseInt(stock) || 100,
+      sizes?.trim() || null, // ✅ added
     ])
 
     const [newRows] = await query(`
