@@ -13,6 +13,14 @@ export const metadata = {
   description: 'Premium football jerseys, boots, balls and kids gear.',
 }
 
+// ✅ CRITICAL: without this, mobile browsers render at ~980px desktop width
+// and media queries never trigger properly
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+}
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -27,14 +35,18 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <CartProvider>
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <div style={{
+              display: 'flex', flexDirection: 'column', minHeight: '100vh',
+              width: '100%', overflowX: 'hidden',
+            }}>
               <Navbar />
-              <main style={{ flex: 1 }}>{children}</main>
+              <main style={{ flex: 1, width: '100%', overflowX: 'hidden' }}>
+                {children}
+              </main>
               <Footer />
             </div>
             <Notification />
             <WhatsAppButton />
-            {/* ✅ FIXED: CheckoutModal is at root level — never unmounts when CartPanel closes */}
             <CheckoutModal />
           </CartProvider>
         </AuthProvider>
