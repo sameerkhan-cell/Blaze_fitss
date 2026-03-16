@@ -240,11 +240,13 @@ export default function CustomKitsPage() {
     <div style={{ background: '#0a0a0a', color: '#e8e8e8', minHeight: '100vh', overflowX: 'hidden' }}>
 
       {/* ══ HERO ══ */}
-      <section style={{ position: 'relative', minHeight: 'clamp(480px, 80vh, 700px)', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+      <section style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Background */}
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=1400&q=80)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.18)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(105deg, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.4) 100%)' }} />
 
-        <div style={{ position: 'relative', zIndex: 10, width: '100%', padding: 'clamp(5rem,12vw,9rem) 1.25rem clamp(5rem,10vw,7rem)' }}>
+        {/* Hero content */}
+        <div style={{ position: 'relative', zIndex: 10, width: '100%', padding: 'clamp(5rem,12vw,8rem) 1.25rem 2rem' }}>
           <div style={{ maxWidth: 640 }}>
             <p style={{ ...mono, fontSize: '0.6rem', letterSpacing: '0.4em', color: '#e8d5b7', textTransform: 'uppercase', marginBottom: '1.25rem', opacity: ready ? 1 : 0, transition: 'opacity 0.6s ease 0.2s' }}>
               BLAZE FITSS · Custom Manufacturing
@@ -260,7 +262,7 @@ export default function CustomKitsPage() {
             <p style={{ color: '#666', fontSize: 'clamp(0.88rem,2.5vw,1rem)', lineHeight: 1.8, maxWidth: 420, marginBottom: '2rem', opacity: ready ? 1 : 0, transition: 'all 0.7s ease 0.7s' }}>
               Premium football jerseys and complete kits for teams, academies and clubs across Pakistan.
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', opacity: ready ? 1 : 0, transition: 'opacity 0.6s ease 1s' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '2.5rem', opacity: ready ? 1 : 0, transition: 'opacity 0.6s ease 1s' }}>
               <a href="#contact" style={{ padding: '0.85rem 1.75rem', background: '#e8d5b7', color: '#0a0a0a', ...mono, fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', textDecoration: 'none', borderRadius: '4px' }}>
                 Get Free Mockup →
               </a>
@@ -271,11 +273,11 @@ export default function CustomKitsPage() {
           </div>
         </div>
 
-        {/* Stats strip */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid #1a1a1a', background: 'rgba(10,10,10,0.85)', backdropFilter: 'blur(8px)', opacity: ready ? 1 : 0, transition: 'opacity 0.6s ease 1.2s' }}>
+        {/* Stats strip — in normal flow, never overlaps content */}
+        <div style={{ position: 'relative', zIndex: 10, borderTop: '1px solid #1a1a1a', background: 'rgba(10,10,10,0.85)', backdropFilter: 'blur(8px)', opacity: ready ? 1 : 0, transition: 'opacity 0.6s ease 1.2s' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', maxWidth: 1200, margin: '0 auto', padding: '0 1.25rem' }}>
             {[['500+','Kits Delivered'],['48hrs','Free Mockup'],['15 Days','Turnaround'],['100%','Custom']].map(([num, label]) => (
-              <div key={label} style={{ flex: '1 1 80px', padding: '1rem 0.75rem', textAlign: 'center', borderRight: '1px solid #1a1a1a' }}>
+              <div key={label} style={{ flex: '1 1 100px', padding: '1rem 0.75rem', textAlign: 'center', borderRight: '1px solid #1a1a1a' }}>
                 <p style={{ ...serif, fontSize: 'clamp(1.1rem,3vw,1.6rem)', fontWeight: 300, color: '#e8d5b7', margin: '0 0 2px' }}>{num}</p>
                 <p style={{ ...mono, fontSize: '0.55rem', letterSpacing: '0.15em', color: '#444', textTransform: 'uppercase', margin: 0 }}>{label}</p>
               </div>
