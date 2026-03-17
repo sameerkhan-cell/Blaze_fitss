@@ -6,6 +6,8 @@ import Footer from '../components/Footer'
 import Notification from '../components/Notification'
 import WhatsAppButton from '../components/WhatsAppButton'
 import CheckoutModal from '../components/CheckoutModal'
+import PageTransition from '../components/PageTransition'
+import ScrollProgressBar from '../components/ScrollProgressBar'
 import './globals.css'
 
 export const metadata = {
@@ -13,8 +15,6 @@ export const metadata = {
   description: 'Premium football jerseys, boots, balls and kids gear.',
 }
 
-// ✅ CRITICAL: without this, mobile browsers render at ~980px desktop width
-// and media queries never trigger properly
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -35,13 +35,19 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <CartProvider>
+            {/* ✅ Gold scroll progress bar at very top */}
+            <ScrollProgressBar />
+
             <div style={{
               display: 'flex', flexDirection: 'column', minHeight: '100vh',
               width: '100%', overflowX: 'hidden',
             }}>
               <Navbar />
+              {/* ✅ Smooth fade+slide on every page navigation */}
               <main style={{ flex: 1, width: '100%', overflowX: 'hidden' }}>
-                {children}
+                <PageTransition>
+                  {children}
+                </PageTransition>
               </main>
               <Footer />
             </div>
