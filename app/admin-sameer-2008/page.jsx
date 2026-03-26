@@ -126,7 +126,7 @@ export default function AdminPage() {
  
   const showMsg = (text, type = 'success') => {
     setMessage({ text, type })
-    setTimeout(() => setMessage(''), 3000)
+    setTimeout(() => setMessage(''), 5000)
   }
  
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))

@@ -9,6 +9,17 @@ export default function ProductCard({ product, index = 0 }) {
   const { addToCart, loading } = useCart()
   const [hovered, setHovered] = useState(false)
   const [adding, setAdding]   = useState(false)
+  const price = Number.parseFloat(product.price || 0)
+  const rating = Number.parseFloat(product.rating || 4.7)
+  const reviews = Number(product.review_count || 0)
+  const stock = Number(product.stock || 0)
+  const isLowStock = stock > 0 && stock <= 3
+  const stockLabel = stock <= 0 ? 'Sold out' : isLowStock ? `${stock} left` : 'In stock'
+  const stockTone = stock <= 0
+    ? { color: '#fca5a5', background: 'rgba(127,29,29,0.45)', border: '1px solid rgba(248,113,113,0.35)' }
+    : isLowStock
+      ? { color: '#fcd34d', background: 'rgba(120,53,15,0.38)', border: '1px solid rgba(250,204,21,0.28)' }
+      : { color: '#b7f0cc', background: 'rgba(20,83,45,0.34)', border: '1px solid rgba(52,211,153,0.22)' }
 
   const handleAdd = async (e) => {
     e.preventDefault()
@@ -31,6 +42,9 @@ export default function ProductCard({ product, index = 0 }) {
         onMouseLeave={() => setHovered(false)}
         style={{
           transform: hovered ? 'translateY(-8px) scale(1.01)' : 'translateY(0) scale(1)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          background: '#0f0f0f',
+          overflow: 'hidden',
           boxShadow: hovered
             ? '0 24px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,213,183,0.15)'
             : '0 2px 8px rgba(0,0,0,0.3)',
@@ -95,27 +109,56 @@ export default function ProductCard({ product, index = 0 }) {
               {product.tag}
             </span>
           )}
+
+          <span
+            style={{
+              position: 'absolute',
+              top: '0.75rem',
+              right: '0.75rem',
+              padding: '0.32rem 0.55rem',
+              borderRadius: 999,
+              fontFamily: 'DM Mono, monospace',
+              fontSize: '0.52rem',
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              backdropFilter: 'blur(8px)',
+              ...stockTone,
+            }}
+          >
+            {stockLabel}
+          </span>
         </div>
 
         {/* Body */}
         <div className="store-card__body">
-          <div className="store-card__meta">
-            <span className="store-card__category">{product.category_name}</span>
-            <span className="store-card__rating">
-              ★ {parseFloat(product.rating).toFixed(1)} ({product.review_count})
+          <div className="store-card__meta" style={{ marginBottom: '0.7rem' }}>
+            <span className="store-card__category" style={{ padding: '0.25rem 0.5rem', borderRadius: 999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              {product.category_name || 'Football Essential'}
+            </span>
+            <span className="store-card__rating" style={{ padding: '0.25rem 0.5rem', borderRadius: 999, background: 'rgba(232,213,183,0.08)', border: '1px solid rgba(232,213,183,0.12)', color: '#d9c9af' }}>
+              {rating.toFixed(1)} / {reviews}
             </span>
           </div>
 
           <h3 className="store-card__name">{product.name}</h3>
 
+          <p style={{ margin: '0 0 0.9rem', color: '#7e766b', lineHeight: 1.65, fontSize: '0.78rem' }}>
+            {stock > 0 ? 'Fast dispatch, secure checkout, and WhatsApp support if you need sizing help.' : 'Join the next restock and keep this pick on your radar.'}
+          </p>
+
           <div className="store-card__footer">
-            <span className="store-card__price">
-              Rs {parseFloat(product.price).toFixed(0)}
-            </span>
+            <div>
+              <span className="store-card__price">
+                Rs {price.toFixed(0)}
+              </span>
+              <p style={{ margin: '0.3rem 0 0', color: '#5f584f', fontSize: '0.72rem' }}>
+                {price >= 5000 ? 'Free delivery eligible' : 'COD available nationwide'}
+              </p>
+            </div>
             <button
               className="store-card__add-btn"
               onClick={handleAdd}
-              disabled={loading || product.stock === 0 || adding}
+              disabled={loading || stock === 0 || adding}
               style={{
                 background: adding ? '#34d399' : hovered ? '#e8d5b7' : '#1e1e1e',
                 color: adding ? '#fff' : hovered ? '#0c0c0c' : '#f0ece4',
@@ -124,7 +167,7 @@ export default function ProductCard({ product, index = 0 }) {
                 transition: 'background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.2s ease',
               }}
             >
-              {adding ? '✓ ADDED' : product.stock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+              {adding ? 'ADDED' : stock === 0 ? 'SOLD OUT' : 'ADD TO CART'}
             </button>
           </div>
         </div>

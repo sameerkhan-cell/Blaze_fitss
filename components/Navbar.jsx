@@ -17,6 +17,12 @@ const links = [
   { href: '/shopforkids',   label: 'Kids'          },
 ]
 
+const utilityLinks = [
+  { label: 'Nationwide Delivery', href: '/ordering' },
+  { label: 'COD Available', href: '/returns' },
+  { label: 'WhatsApp Support', href: 'https://wa.me/923118186132', ext: true },
+]
+
 const MOBILE_BREAKPOINT = 900
 
 export default function Navbar() {
@@ -72,6 +78,29 @@ export default function Navbar() {
         {/* Gold accent line */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent 0%, #e8d5b7 35%, #c8a84b 65%, transparent 100%)', opacity: 0.45, pointerEvents: 'none' }} />
 
+        {!isMobile && (
+          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: 'rgba(255,255,255,0.015)' }}>
+            <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0.45rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '1.1rem', flexWrap: 'wrap' }}>
+                {utilityLinks.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    target={item.ext ? '_blank' : undefined}
+                    rel={item.ext ? 'noreferrer noopener' : undefined}
+                    style={{ ...mono, fontSize: '0.52rem', letterSpacing: '0.18em', color: '#72695d', textTransform: 'uppercase', textDecoration: 'none' }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+              <span style={{ ...mono, fontSize: '0.52rem', letterSpacing: '0.16em', color: '#92856f', textTransform: 'uppercase' }}>
+                Free delivery over Rs 5000
+              </span>
+            </div>
+          </div>
+        )}
+
         <div style={{
           maxWidth: 1400, margin: '0 auto',
           padding: `0 ${isMobile ? '1rem' : '2rem'}`,
@@ -97,9 +126,11 @@ export default function Navbar() {
                   return (
                     <Link key={href} href={href} style={{
                       position: 'relative', ...mono, fontSize: '0.68rem',
-                      letterSpacing: '0.12em', padding: '0.5rem 0.85rem',
+                      letterSpacing: '0.12em', padding: '0.5rem 0.9rem',
                       color: active ? '#e8d5b7' : '#555',
-                      textDecoration: 'none', transition: 'color 0.2s', whiteSpace: 'nowrap',
+                      background: active ? 'rgba(232,213,183,0.07)' : 'transparent',
+                      borderRadius: 999,
+                      textDecoration: 'none', transition: 'color 0.2s, background 0.2s', whiteSpace: 'nowrap',
                     }}
                       onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#aaa' }}
                       onMouseLeave={e => { if (!active) e.currentTarget.style.color = '#555' }}>
@@ -113,8 +144,8 @@ export default function Navbar() {
               {/* Custom Kits pill */}
               <Link href="/custom-kits" style={{
                 ...mono, fontSize: '0.62rem', letterSpacing: '0.14em',
-                padding: '0.4rem 0.9rem', background: 'rgba(232,213,183,0.07)',
-                border: '1px solid rgba(232,213,183,0.25)', borderRadius: '4px',
+                padding: '0.45rem 0.95rem', background: 'rgba(232,213,183,0.07)',
+                border: '1px solid rgba(232,213,183,0.25)', borderRadius: '999px',
                 color: '#e8d5b7', textDecoration: 'none', flexShrink: 0,
                 transition: 'all 0.2s', whiteSpace: 'nowrap',
               }}
@@ -134,10 +165,10 @@ export default function Navbar() {
                 <svg style={{ position: 'absolute', left: '0.65rem', pointerEvents: 'none', color: '#444' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                 </svg>
-                <input placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  style={{ background: '#0e0e0e', border: '1px solid #1e1e1e', borderRadius: '4px', padding: '0.4rem 0.75rem 0.4rem 2rem', color: '#f0ece4', ...mono, fontSize: '0.68rem', outline: 'none', width: 150, transition: 'border-color 0.2s, width 0.3s' }}
-                  onFocus={e => { e.target.style.borderColor = '#333'; e.target.style.width = '190px' }}
-                  onBlur={e => { e.target.style.borderColor = '#1e1e1e'; e.target.style.width = '150px' }} />
+                <input placeholder="Search jerseys, boots..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                  style={{ background: '#0e0e0e', border: '1px solid #1e1e1e', borderRadius: '999px', padding: '0.45rem 0.85rem 0.45rem 2rem', color: '#f0ece4', ...mono, fontSize: '0.68rem', outline: 'none', width: 170, transition: 'border-color 0.2s, width 0.3s' }}
+                  onFocus={e => { e.target.style.borderColor = '#333'; e.target.style.width = '220px' }}
+                  onBlur={e => { e.target.style.borderColor = '#1e1e1e'; e.target.style.width = '170px' }} />
               </form>
             )}
 

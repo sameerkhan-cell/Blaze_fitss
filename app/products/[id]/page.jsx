@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useCart } from '../../../context/CartContext'
@@ -80,6 +81,17 @@ export default function ProductDetailPage() {
   const [imgZoom,       setImgZoom]       = useState(false)
   const [wishlist,      setWishlist]      = useState(false)
   const [tab,           setTab]           = useState('description')
+
+  useEffect(() => {
+    if (!imgZoom) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [imgZoom])
 
   useEffect(() => {
     if (!id) return
@@ -448,7 +460,79 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Zoom modal */}
-      {imgZoom && images.length > 0 && (
+      {imgZoom && images.length > 0 && typeof document !== 'undefined' && createPortal(
+        <div
+          onClick={() => setImgZoom(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(0,0,0,0.94)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'zoom-out',
+            padding: '1.5rem',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              width: 'min(1100px, 100%)',
+              height: 'min(88vh, 820px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+            }}
+          >
+            <img
+              src={images[activeImg]}
+              alt={product.name}
+              style={{
+                display: 'block',
+                maxWidth: '100%',
+                maxHeight: '100%',
+                width: 'auto',
+                height: 'auto',
+                objectFit: 'contain',
+                objectPosition: 'center',
+                borderRadius: 12,
+                boxShadow: '0 28px 80px rgba(0,0,0,0.45)',
+              }}
+            />
+          </div>
+          <button
+            onClick={e => {
+              e.stopPropagation()
+              setImgZoom(false)
+            }}
+            aria-label="Close image preview"
+            style={{
+              position: 'absolute',
+              top: '1.25rem',
+              right: '1.25rem',
+              background: 'rgba(12,12,12,0.82)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: '#f0ece4',
+              width: 42,
+              height: 42,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            x
+          </button>
+        </div>,
+        document.body
+      )}
+      {false && imgZoom && images.length > 0 && (
         <div onClick={() => setImgZoom(false)} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.96)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-out', padding: '1.5rem' }}>
           <img src={images[activeImg]} alt={product.name} style={{ maxWidth: '92vw', maxHeight: '92vh', objectFit: 'contain', borderRadius: 8 }} />
           <button onClick={() => setImgZoom(false)} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(255,255,255,0.1)', color: '#f0ece4', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>

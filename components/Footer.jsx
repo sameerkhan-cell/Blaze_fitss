@@ -46,6 +46,12 @@ const socials = [
   },
 ]
 
+const footerHighlights = [
+  { title: 'Nationwide Delivery', note: 'Fast dispatch across Pakistan' },
+  { title: 'Cash On Delivery', note: 'Flexible checkout for shoppers' },
+  { title: 'WhatsApp Help', note: 'Sizing and team-order support' },
+]
+
 export default function Footer() {
   const [email, setEmail]           = useState('')
   const [subscribed, setSubscribed] = useState(false)
@@ -114,6 +120,17 @@ export default function Footer() {
         </div>
       </div>
 
+      <div style={{ borderBottom: '1px solid #121212', background: '#090909' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '1.1rem 2rem', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.85rem' }} className="footer-highlights-grid">
+          {footerHighlights.map((item) => (
+            <div key={item.title} style={{ padding: '0.9rem 1rem', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', background: 'linear-gradient(180deg, rgba(18,18,18,0.9), rgba(8,8,8,0.98))' }}>
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.56rem', letterSpacing: '0.2em', color: '#7f7465', textTransform: 'uppercase', margin: '0 0 0.45rem' }}>{item.title}</p>
+              <p style={{ color: '#8a8174', margin: 0, lineHeight: 1.7 }}>{item.note}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Main footer body */}
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '3.5rem 2rem 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '4rem', marginBottom: '3rem' }} className="footer-grid">
@@ -158,6 +175,18 @@ export default function Footer() {
                 onMouseLeave={e => e.currentTarget.style.color = '#3a3a3a'}>
                 <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.58rem', letterSpacing: '0.1em', color: '#333' }}>EM</span>
                 sameerkhan031181@gmail.com
+              </a>
+            </div>
+
+            <div style={{ marginTop: '1rem', padding: '0.95rem 1rem', borderRadius: 14, border: '1px solid rgba(232,213,183,0.12)', background: 'linear-gradient(180deg, rgba(232,213,183,0.06), rgba(12,12,12,0.98))' }}>
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.55rem', letterSpacing: '0.22em', color: '#8d816f', textTransform: 'uppercase', margin: '0 0 0.45rem' }}>
+                Need Help Fast?
+              </p>
+              <p style={{ color: '#8c8478', margin: '0 0 0.75rem', lineHeight: 1.7 }}>
+                Message us for sizing advice, team orders, or product availability before you check out.
+              </p>
+              <a href="https://wa.me/923118186132" target="_blank" rel="noreferrer" style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#e8d5b7', textDecoration: 'none' }}>
+                Open WhatsApp
               </a>
             </div>
           </div>
@@ -217,10 +246,12 @@ export default function Footer() {
 
       <style>{`
         @media (max-width: 1024px) {
+          .footer-highlights-grid { grid-template-columns: 1fr !important; }
           .footer-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
           .footer-links-grid { grid-template-columns: repeat(3, 1fr) !important; }
         }
         @media (max-width: 640px) {
+          .footer-highlights-grid { grid-template-columns: 1fr !important; }
           .footer-links-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>

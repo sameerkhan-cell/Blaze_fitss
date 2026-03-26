@@ -5,6 +5,20 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 const CartContext = createContext(null)
 
+function recalculateCart(currentCart, nextItems) {
+  const items = nextItems.map(item => ({
+    ...item,
+    quantity: Number(item.quantity || 0),
+    price: Number(item.price || 0),
+  }))
+
+  return {
+    ...currentCart,
+    items,
+    total: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+  }
+}
+
 export function CartProvider({ children }) {
   const [cart, setCart]               = useState({ items: [], total: 0 })
   const [cartOpen, setCartOpen]       = useState(false)
@@ -26,7 +40,7 @@ export function CartProvider({ children }) {
 
   const showNotification = (msg) => {
     setNotification(msg)
-    setTimeout(() => setNotification(''), 3000)
+    setTimeout(() => setNotification(''), 5000)
   }
 
   const addToCart = async (productId, quantity = 1, size = null) => {
@@ -50,6 +64,18 @@ export function CartProvider({ children }) {
   }
 
   const updateItem = async (itemId, quantity) => {
+    if (quantity <= 0) {
+      removeItem(itemId)
+      return
+    }
+
+    const previousCart = cart
+    const optimisticItems = previousCart.items.map(item =>
+      item.id === itemId ? { ...item, quantity } : item
+    )
+
+    setCart(recalculateCart(previousCart, optimisticItems))
+
     try {
       const res = await fetch(`/api/cart/${itemId}`, {
         method: 'PUT',
@@ -60,16 +86,23 @@ export function CartProvider({ children }) {
       if (json.success) setCart(json.data)
     } catch (err) {
       console.error('updateItem error:', err)
+      setCart(previousCart)
     }
   }
 
   const removeItem = async (itemId) => {
+    const previousCart = cart
+    const optimisticItems = previousCart.items.filter(item => item.id !== itemId)
+
+    setCart(recalculateCart(previousCart, optimisticItems))
+
     try {
       const res = await fetch(`/api/cart/${itemId}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.success) setCart(json.data)
     } catch (err) {
       console.error('removeItem error:', err)
+      setCart(previousCart)
     }
   }
 
