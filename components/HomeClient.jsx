@@ -93,7 +93,6 @@ export default function HomeClient({ products, categories, query, error }) {
   const topPick = useMemo(() => (
     products.reduce((best, product) => {
       if (!best) return product
-
       const bestScore = (parseNumber(best.rating, 4.6) * 100) + parseNumber(best.review_count)
       const productScore = (parseNumber(product.rating, 4.6) * 100) + parseNumber(product.review_count)
       return productScore > bestScore ? product : best
@@ -195,11 +194,9 @@ export default function HomeClient({ products, categories, query, error }) {
 
   const handleHeroMouseMove = (event) => {
     const target = event.currentTarget
-
     if (heroPointerFrame.current) {
       window.cancelAnimationFrame(heroPointerFrame.current)
     }
-
     heroPointerFrame.current = window.requestAnimationFrame(() => {
       const rect = target.getBoundingClientRect()
       const x = ((event.clientX - rect.left) / rect.width) * 100
@@ -214,18 +211,15 @@ export default function HomeClient({ products, categories, query, error }) {
       window.cancelAnimationFrame(heroPointerFrame.current)
       heroPointerFrame.current = null
     }
-
     event.currentTarget.style.setProperty('--hero-x', '72%')
     event.currentTarget.style.setProperty('--hero-y', '32%')
   }
 
   const dismissIntro = () => {
     setIntroClosing(true)
-
     try {
       window.sessionStorage.setItem('blaze-home-intro-seen', '1')
     } catch {}
-
     window.setTimeout(() => {
       setShowIntro(false)
       setIntroClosing(false)
@@ -235,24 +229,19 @@ export default function HomeClient({ products, categories, query, error }) {
   useEffect(() => {
     let closeTimer
     let hideTimer
-
     try {
       const seen = window.sessionStorage.getItem('blaze-home-intro-seen')
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
       if (seen || prefersReducedMotion || window.innerWidth < 768) {
         if (!seen) {
           window.sessionStorage.setItem('blaze-home-intro-seen', '1')
         }
         return undefined
       }
-
       setShowIntro(true)
-
       closeTimer = window.setTimeout(() => {
         setIntroClosing(true)
       }, 1450)
-
       hideTimer = window.setTimeout(() => {
         setShowIntro(false)
         setIntroClosing(false)
@@ -261,7 +250,6 @@ export default function HomeClient({ products, categories, query, error }) {
     } catch {
       return undefined
     }
-
     return () => {
       window.clearTimeout(closeTimer)
       window.clearTimeout(hideTimer)
@@ -270,11 +258,9 @@ export default function HomeClient({ products, categories, query, error }) {
 
   useEffect(() => {
     if (heroDeckCards.length < 2) return undefined
-
     const intervalId = window.setInterval(() => {
       setActiveDeckCard(current => (current + 1) % heroDeckCards.length)
     }, 2600)
-
     return () => window.clearInterval(intervalId)
   }, [heroDeckCards.length])
 
@@ -286,28 +272,22 @@ export default function HomeClient({ products, categories, query, error }) {
 
   const handleNewsletterSubmit = async (event) => {
     event.preventDefault()
-
     if (!newsletterEmail.trim()) {
       setNewsletterState({ type: 'error', message: 'Enter your email to unlock launch alerts.' })
       return
     }
-
     setSubmittingNewsletter(true)
     setNewsletterState({ type: '', message: '' })
-
     try {
       const response = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newsletterEmail.trim() }),
       })
-
       const data = await response.json()
-
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to subscribe')
       }
-
       setNewsletterState({
         type: 'success',
         message: data.alreadySubscribed
@@ -325,6 +305,73 @@ export default function HomeClient({ products, categories, query, error }) {
     }
   }
 
+  // ─── SEARCH MODE: show only results, hide everything else ───
+  if (query) {
+    return (
+      <div style={{ background: '#0c0c0c', minHeight: '100vh' }}>
+        <section style={{ maxWidth: 1400, margin: '0 auto', padding: '3rem 1.5rem 5rem' }}>
+          {/* Search header */}
+          <div style={{ marginBottom: '2.5rem' }}>
+            <p style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.35em', color: '#444', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              Search Results
+            </p>
+            <h1 style={{ ...serif, fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 300, color: '#f0ece4', margin: '0 0 0.75rem' }}>
+              &ldquo;{query}&rdquo;
+            </h1>
+            <p style={{ ...mono, fontSize: '0.65rem', color: '#555', margin: '0 0 1rem' }}>
+              {sortedProducts.length === 0
+                ? 'No products found'
+                : `${sortedProducts.length} product${sortedProducts.length !== 1 ? 's' : ''} found`}
+            </p>
+            <a href="/" style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+              ...mono, fontSize: '0.62rem', letterSpacing: '0.12em',
+              color: '#666', textDecoration: 'none',
+              border: '1px solid #1e1e1e', borderRadius: 999,
+              padding: '0.45rem 1rem',
+              transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#e8d5b7' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#666' }}>
+              ← CLEAR SEARCH
+            </a>
+          </div>
+
+          {/* Results */}
+          {error ? (
+            <p style={{ ...mono, color: '#f87171', fontSize: '0.8rem' }}>{error}</p>
+          ) : sortedProducts.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '5rem 0' }}>
+              <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</p>
+              <p style={{ ...serif, fontSize: '1.5rem', fontWeight: 300, color: '#f0ece4', marginBottom: '0.5rem' }}>
+                No results for &ldquo;{query}&rdquo;
+              </p>
+              <p style={{ ...mono, fontSize: '0.7rem', color: '#444', marginBottom: '2rem' }}>
+                Try searching for jerseys, shoes, footballs, or kids gear.
+              </p>
+              <a href="/" style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.85rem 2rem',
+                background: '#e8d5b7', color: '#0c0c0c',
+                ...mono, fontSize: '0.7rem', letterSpacing: '0.2em',
+                borderRadius: 999, fontWeight: 600, textDecoration: 'none',
+              }}>
+                ← BACK TO STORE
+              </a>
+            </div>
+          ) : (
+            <ProductGrid products={sortedProducts} />
+          )}
+        </section>
+
+        <style>{`
+          @keyframes fadeUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:none } }
+        `}</style>
+      </div>
+    )
+  }
+
+  // ─── NORMAL HOME PAGE ───────────────────────────────────────
   return (
     <div style={{ background: '#0c0c0c', minHeight: '100vh' }}>
       {showIntro && (
@@ -346,9 +393,7 @@ export default function HomeClient({ products, categories, query, error }) {
           <div
             style={{
               position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: 0,
+              top: 0, bottom: 0, left: 0,
               width: '50%',
               background: '#050505',
               borderRight: '1px solid rgba(232,213,183,0.08)',
@@ -359,9 +404,7 @@ export default function HomeClient({ products, categories, query, error }) {
           <div
             style={{
               position: 'absolute',
-              top: 0,
-              bottom: 0,
-              right: 0,
+              top: 0, bottom: 0, right: 0,
               width: '50%',
               background: '#050505',
               borderLeft: '1px solid rgba(232,213,183,0.08)',
@@ -369,7 +412,6 @@ export default function HomeClient({ products, categories, query, error }) {
               transition: 'transform 950ms cubic-bezier(0.76,0,0.24,1)',
             }}
           />
-
           <div
             style={{
               position: 'relative',
@@ -384,9 +426,7 @@ export default function HomeClient({ products, categories, query, error }) {
               Blaze Fitss
             </p>
             <h2 style={{ ...serif, fontSize: 'clamp(2.7rem, 7vw, 5.4rem)', lineHeight: 0.9, color: '#f5f0e8', margin: '0 0 1rem', fontWeight: 300 }}>
-              The Matchday
-              <br />
-              Edit
+              The Matchday<br />Edit
             </h2>
             <p style={{ maxWidth: 440, margin: '0 auto 1.4rem', color: '#8e877d', lineHeight: 1.8 }}>
               Loading new drops, custom kits, and a premium football store experience.
@@ -426,8 +466,6 @@ export default function HomeClient({ products, categories, query, error }) {
         onMouseMove={handleHeroMouseMove}
         onMouseLeave={handleHeroMouseLeave}
       >
-
-        {/* BG image */}
         <div style={{
           position: 'absolute', inset: 0,
           backgroundImage: 'url(https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=1400&q=85)',
@@ -436,223 +474,162 @@ export default function HomeClient({ products, categories, query, error }) {
           transform: 'scale(1.04)',
           transition: 'transform 8s ease',
         }} />
-
-        {/* Overlays */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(110deg, rgba(8,8,8,1) 0%, rgba(8,8,8,0.82) 40%, rgba(8,8,8,0.16) 100%)' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #080808 0%, transparent 40%)' }} />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'radial-gradient(circle at var(--hero-x) var(--hero-y), rgba(232,213,183,0.18) 0%, rgba(232,213,183,0.05) 22%, transparent 52%)',
-            mixBlendMode: 'screen',
-            pointerEvents: 'none',
-            transition: 'background 160ms ease',
-          }}
-        />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(circle at var(--hero-x) var(--hero-y), rgba(232,213,183,0.18) 0%, rgba(232,213,183,0.05) 22%, transparent 52%)',
+          mixBlendMode: 'screen', pointerEvents: 'none', transition: 'background 160ms ease',
+        }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '54px 54px', opacity: 0.14, pointerEvents: 'none' }} />
-
-        {/* Decorative vertical line */}
         <div style={{ position: 'absolute', left: '48%', top: 0, bottom: 0, width: 1, background: 'linear-gradient(to bottom, transparent, rgba(232,213,183,0.06) 30%, rgba(232,213,183,0.06) 70%, transparent)', pointerEvents: 'none' }} />
 
-        {/* Content */}
         <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: 1400, margin: '0 auto', padding: '5rem 1.5rem 7rem' }}>
-
-          <div className="hero-shell" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.08fr) minmax(320px, 0.92fr)', gap: 'clamp(2rem, 5vw, 4rem)', alignItems: 'center'}}>
+          <div className="hero-shell" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.08fr) minmax(320px, 0.92fr)', gap: 'clamp(2rem, 5vw, 4rem)', alignItems: 'center' }}>
             <div style={{ maxWidth: 720 }}>
-            {/* Eyebrow */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', animation: 'fadeUp 0.7s ease 0.1s both' }}>
-              <div style={{ width: 28, height: 1, background: '#e8d5b7', opacity: 0.6 }} />
-              <span style={{ ...mono, fontSize: '0.6rem', letterSpacing: '0.45em', color: '#e8d5b7', opacity: 0.8, textTransform: 'uppercase' }}>
-                SS 2026 Collection
-              </span>
-            </div>
-
-            {/* Headline */}
-            <h1 style={{
-              ...serif,
-              fontSize: 'clamp(2.7rem, 5vw, 4.8rem)',
-              fontWeight: 300, lineHeight: 0.92,
-              color: '#f5f0e8', marginBottom: '1.3rem',
-              animation: 'fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.2s both',
-              letterSpacing: '-0.02em',
-            }}>
-              Football Store<br />
-              <em style={{ color: '#e8d5b7', fontStyle: 'italic' }}>With Opening Drama</em><br />
-              <span style={{ fontSize: '74%', opacity: 0.76 }}>Built To Convert</span>
-            </h1>
-
-            {/* Subtext */}
-            <p style={{
-              color: '#7d7568', fontSize: '0.98rem',
-              lineHeight: 1.9, maxWidth: 520, marginBottom: '2rem',
-              animation: 'fadeUp 0.8s ease 0.4s both',
-            }}>
-              Premium football jerseys, boots and complete custom kits — delivered across Pakistan.
-            </p>
-
-            {/* CTAs */}
-            <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', animation: 'fadeUp 0.7s ease 0.55s both' }}>
-              <Link href="/jerseys" style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-                padding: '0.95rem 2.3rem',
-                background: '#e8d5b7', color: '#080808',
-                ...mono, fontSize: '0.7rem', letterSpacing: '0.22em',
-                borderRadius: 999, fontWeight: 600, textDecoration: 'none',
-                transition: 'all 0.25s ease', boxShadow: '0 10px 30px rgba(232,213,183,0.12)',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f0e4ca'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,213,183,0.24)' }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#e8d5b7'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(232,213,183,0.12)' }}>
-                Shop Jerseys
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </Link>
-              <Link href="/custom-kits" style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-                padding: '0.95rem 2rem',
-                background: 'rgba(255,255,255,0.02)', color: '#cfc4b2',
-                border: '1px solid rgba(232,213,183,0.18)',
-                ...mono, fontSize: '0.7rem', letterSpacing: '0.2em',
-                borderRadius: 999, textDecoration: 'none',
-                transition: 'all 0.25s ease',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(232,213,183,0.42)'; e.currentTarget.style.color = '#f3eadb'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(232,213,183,0.18)'; e.currentTarget.style.color = '#cfc4b2'; e.currentTarget.style.transform = 'none' }}>
-                Build Custom Kit
-              </Link>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', marginTop: '1rem', animation: 'fadeUp 0.7s ease 0.7s both' }}>
-              {['COD ready', 'Weekly restocks', 'WhatsApp size help'].map((item) => (
-                <span
-                  key={item}
-                  style={{
-                    padding: '0.48rem 0.8rem',
-                    borderRadius: 999,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    ...mono,
-                    fontSize: '0.56rem',
-                    letterSpacing: '0.14em',
-                    color: '#a99f90',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div
-            className="hero-deck"
-            style={{
-              position: 'relative',
-              minHeight: 400,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'fadeUp 0.9s ease 0.35s both',
-            }}
-          >
-            <div style={{ position: 'absolute', inset: '12% 10% 10%', borderRadius: 34, background: 'radial-gradient(circle at center, rgba(232,213,183,0.15) 0%, rgba(232,213,183,0.05) 38%, transparent 72%)', filter: 'blur(10px)' }} />
-
-            <div style={{ position: 'relative', width: '100%', maxWidth: 450, display: 'grid', gap: '0.9rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.8rem', flexWrap: 'wrap' }}>
-                <div style={{ padding: '0.5rem 0.8rem', borderRadius: 999, border: '1px solid rgba(232,213,183,0.16)', background: 'rgba(6,6,6,0.72)', ...mono, fontSize: '0.54rem', letterSpacing: '0.18em', color: '#b7aa95', textTransform: 'uppercase', backdropFilter: 'blur(12px)' }}>
-                  Live Drop Board
-                </div>
-                <span style={{ ...mono, fontSize: '0.54rem', letterSpacing: '0.16em', color: '#686053', textTransform: 'uppercase' }}>
-                  Auto-rotating picks
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', animation: 'fadeUp 0.7s ease 0.1s both' }}>
+                <div style={{ width: 28, height: 1, background: '#e8d5b7', opacity: 0.6 }} />
+                <span style={{ ...mono, fontSize: '0.6rem', letterSpacing: '0.45em', color: '#e8d5b7', opacity: 0.8, textTransform: 'uppercase' }}>
+                  SS 2026 Collection
                 </span>
               </div>
+              <h1 style={{
+                ...serif,
+                fontSize: 'clamp(2.7rem, 5vw, 4.8rem)',
+                fontWeight: 300, lineHeight: 0.92,
+                color: '#f5f0e8', marginBottom: '1.3rem',
+                animation: 'fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.2s both',
+                letterSpacing: '-0.02em',
+              }}>
+                Football Store<br />
+                <em style={{ color: '#e8d5b7', fontStyle: 'italic' }}>With Opening Drama</em><br />
+                <span style={{ fontSize: '74%', opacity: 0.76 }}>Built To Convert</span>
+              </h1>
+              <p style={{ color: '#7d7568', fontSize: '0.98rem', lineHeight: 1.9, maxWidth: 520, marginBottom: '2rem', animation: 'fadeUp 0.8s ease 0.4s both' }}>
+                Premium football jerseys, boots and complete custom kits — delivered across Pakistan.
+              </p>
+              <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', animation: 'fadeUp 0.7s ease 0.55s both' }}>
+                <Link href="/jerseys" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.95rem 2.3rem',
+                  background: '#e8d5b7', color: '#080808',
+                  ...mono, fontSize: '0.7rem', letterSpacing: '0.22em',
+                  borderRadius: 999, fontWeight: 600, textDecoration: 'none',
+                  transition: 'all 0.25s ease', boxShadow: '0 10px 30px rgba(232,213,183,0.12)',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f0e4ca'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(232,213,183,0.24)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#e8d5b7'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(232,213,183,0.12)' }}>
+                  Shop Jerseys
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </Link>
+                <Link href="/custom-kits" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.95rem 2rem',
+                  background: 'rgba(255,255,255,0.02)', color: '#cfc4b2',
+                  border: '1px solid rgba(232,213,183,0.18)',
+                  ...mono, fontSize: '0.7rem', letterSpacing: '0.2em',
+                  borderRadius: 999, textDecoration: 'none', transition: 'all 0.25s ease',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(232,213,183,0.42)'; e.currentTarget.style.color = '#f3eadb'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(232,213,183,0.18)'; e.currentTarget.style.color = '#cfc4b2'; e.currentTarget.style.transform = 'none' }}>
+                  Build Custom Kit
+                </Link>
+              </div>
+              <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', marginTop: '1rem', animation: 'fadeUp 0.7s ease 0.7s both' }}>
+                {['COD ready', 'Weekly restocks', 'WhatsApp size help'].map((item) => (
+                  <span key={item} style={{ padding: '0.48rem 0.8rem', borderRadius: 999, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', ...mono, fontSize: '0.56rem', letterSpacing: '0.14em', color: '#a99f90', textTransform: 'uppercase' }}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
 
-              {activeHeroCard && (
-                <Link
-                  href={activeHeroCard.href}
-                  style={{
-                    position: 'relative',
-                    overflow: 'hidden',
-                    display: 'grid',
-                    gap: '1.2rem',
-                    minHeight: 286,
-                    padding: '1.45rem',
-                    textDecoration: 'none',
-                    borderRadius: 30,
-                    border: '1px solid rgba(232,213,183,0.22)',
-                    background: `linear-gradient(145deg, ${activeHeroCard.accent}, rgba(10,10,10,0.96) 42%, rgba(4,4,4,0.98) 100%)`,
-                    boxShadow: '0 28px 60px rgba(0,0,0,0.32)',
-                    backdropFilter: 'blur(14px)',
-                  }}
-                >
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(140deg, rgba(255,255,255,0.08), transparent 42%, rgba(0,0,0,0.16))', pointerEvents: 'none' }} />
-
-                  <div style={{ position: 'relative', zIndex: 1 }}>
-                    <p style={{ ...mono, fontSize: '0.56rem', letterSpacing: '0.26em', color: '#e8d5b7', textTransform: 'uppercase', marginBottom: '0.85rem' }}>
-                      {activeHeroCard.eyebrow}
-                    </p>
-                    <h3 style={{ ...serif, fontSize: 'clamp(1.55rem, 2.3vw, 2.15rem)', lineHeight: 1.02, color: '#f7f1e8', fontWeight: 300, margin: '0 0 0.7rem', maxWidth: 360 }}>
-                      {activeHeroCard.title}
-                    </h3>
-                    <p style={{ color: '#b9b0a2', lineHeight: 1.75, margin: 0, maxWidth: 340 }}>
-                      {activeHeroCard.detail}
-                    </p>
+            <div className="hero-deck" style={{ position: 'relative', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeUp 0.9s ease 0.35s both' }}>
+              <div style={{ position: 'absolute', inset: '12% 10% 10%', borderRadius: 34, background: 'radial-gradient(circle at center, rgba(232,213,183,0.15) 0%, rgba(232,213,183,0.05) 38%, transparent 72%)', filter: 'blur(10px)' }} />
+              <div style={{ position: 'relative', width: '100%', maxWidth: 450, display: 'grid', gap: '0.9rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.8rem', flexWrap: 'wrap' }}>
+                  <div style={{ padding: '0.5rem 0.8rem', borderRadius: 999, border: '1px solid rgba(232,213,183,0.16)', background: 'rgba(6,6,6,0.72)', ...mono, fontSize: '0.54rem', letterSpacing: '0.18em', color: '#b7aa95', textTransform: 'uppercase', backdropFilter: 'blur(12px)' }}>
+                    Live Drop Board
                   </div>
+                  <span style={{ ...mono, fontSize: '0.54rem', letterSpacing: '0.16em', color: '#686053', textTransform: 'uppercase' }}>
+                    Auto-rotating picks
+                  </span>
+                </div>
 
-                  <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div>
-                      <p style={{ ...mono, fontSize: '0.52rem', letterSpacing: '0.22em', color: '#857c70', textTransform: 'uppercase', margin: '0 0 0.35rem' }}>
-                        Why It Matters
+                {activeHeroCard && (
+                  <Link
+                    href={activeHeroCard.href}
+                    style={{
+                      position: 'relative', overflow: 'hidden',
+                      display: 'grid', gap: '1.2rem', minHeight: 286,
+                      padding: '1.45rem', textDecoration: 'none',
+                      borderRadius: 30, border: '1px solid rgba(232,213,183,0.22)',
+                      background: `linear-gradient(145deg, ${activeHeroCard.accent}, rgba(10,10,10,0.96) 42%, rgba(4,4,4,0.98) 100%)`,
+                      boxShadow: '0 28px 60px rgba(0,0,0,0.32)', backdropFilter: 'blur(14px)',
+                    }}
+                  >
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(140deg, rgba(255,255,255,0.08), transparent 42%, rgba(0,0,0,0.16))', pointerEvents: 'none' }} />
+                    <div style={{ position: 'relative', zIndex: 1 }}>
+                      <p style={{ ...mono, fontSize: '0.56rem', letterSpacing: '0.26em', color: '#e8d5b7', textTransform: 'uppercase', marginBottom: '0.85rem' }}>
+                        {activeHeroCard.eyebrow}
                       </p>
-                      <p style={{ ...serif, fontSize: '1.3rem', color: '#f0ece4', margin: 0, fontWeight: 300 }}>
-                        {activeHeroCard.meta}
+                      <h3 style={{ ...serif, fontSize: 'clamp(1.55rem, 2.3vw, 2.15rem)', lineHeight: 1.02, color: '#f7f1e8', fontWeight: 300, margin: '0 0 0.7rem', maxWidth: 360 }}>
+                        {activeHeroCard.title}
+                      </h3>
+                      <p style={{ color: '#b9b0a2', lineHeight: 1.75, margin: 0, maxWidth: 340 }}>
+                        {activeHeroCard.detail}
                       </p>
                     </div>
-                    <span style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.16em', color: '#0b0b0b', background: '#e8d5b7', borderRadius: 999, padding: '0.72rem 1rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                      {activeHeroCard.label}
-                    </span>
-                  </div>
-                </Link>
-              )}
-
-              <div style={{ display: 'grid', gap: '0.55rem' }}>
-                {heroDeckCards.map((card, index) => {
-                  const active = index === activeDeckCard
-
-                  return (
-                    <button
-                      key={card.title}
-                      type="button"
-                      onMouseEnter={() => setActiveDeckCard(index)}
-                      onClick={() => setActiveDeckCard(index)}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'auto 1fr auto',
-                        gap: '0.8rem',
-                        alignItems: 'center',
-                        textAlign: 'left',
-                        padding: '0.85rem 0.95rem',
-                        borderRadius: 18,
-                        border: `1px solid ${active ? 'rgba(232,213,183,0.24)' : 'rgba(255,255,255,0.08)'}`,
-                        background: active ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
-                        cursor: 'pointer',
-                        transition: 'all 220ms ease',
-                      }}
-                    >
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: active ? '#e8d5b7' : '#3f3b35', boxShadow: active ? '0 0 0 6px rgba(232,213,183,0.08)' : 'none' }} />
+                    <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                       <div>
-                        <p style={{ ...mono, fontSize: '0.52rem', letterSpacing: '0.2em', color: active ? '#b8ab96' : '#686053', textTransform: 'uppercase', margin: '0 0 0.2rem' }}>
-                          {card.eyebrow}
+                        <p style={{ ...mono, fontSize: '0.52rem', letterSpacing: '0.22em', color: '#857c70', textTransform: 'uppercase', margin: '0 0 0.35rem' }}>
+                          Why It Matters
                         </p>
-                        <p style={{ color: active ? '#f0ece4' : '#a69a89', margin: 0, lineHeight: 1.5 }}>
-                          {card.title}
+                        <p style={{ ...serif, fontSize: '1.3rem', color: '#f0ece4', margin: 0, fontWeight: 300 }}>
+                          {activeHeroCard.meta}
                         </p>
                       </div>
-                      <span style={{ ...mono, fontSize: '0.5rem', letterSpacing: '0.18em', color: active ? '#e8d5b7' : '#686053', textTransform: 'uppercase' }}>
-                        Open
+                      <span style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.16em', color: '#0b0b0b', background: '#e8d5b7', borderRadius: 999, padding: '0.72rem 1rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                        {activeHeroCard.label}
                       </span>
-                    </button>
-                  )
-                })}
+                    </div>
+                  </Link>
+                )}
+
+                <div style={{ display: 'grid', gap: '0.55rem' }}>
+                  {heroDeckCards.map((card, index) => {
+                    const active = index === activeDeckCard
+                    return (
+                      <button
+                        key={card.title}
+                        type="button"
+                        onMouseEnter={() => setActiveDeckCard(index)}
+                        onClick={() => setActiveDeckCard(index)}
+                        style={{
+                          display: 'grid', gridTemplateColumns: 'auto 1fr auto',
+                          gap: '0.8rem', alignItems: 'center', textAlign: 'left',
+                          padding: '0.85rem 0.95rem', borderRadius: 18,
+                          border: `1px solid ${active ? 'rgba(232,213,183,0.24)' : 'rgba(255,255,255,0.08)'}`,
+                          background: active ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
+                          cursor: 'pointer', transition: 'all 220ms ease',
+                        }}
+                      >
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: active ? '#e8d5b7' : '#3f3b35', boxShadow: active ? '0 0 0 6px rgba(232,213,183,0.08)' : 'none' }} />
+                        <div>
+                          <p style={{ ...mono, fontSize: '0.52rem', letterSpacing: '0.2em', color: active ? '#b8ab96' : '#686053', textTransform: 'uppercase', margin: '0 0 0.2rem' }}>
+                            {card.eyebrow}
+                          </p>
+                          <p style={{ color: active ? '#f0ece4' : '#a69a89', margin: 0, lineHeight: 1.5 }}>
+                            {card.title}
+                          </p>
+                        </div>
+                        <span style={{ ...mono, fontSize: '0.5rem', letterSpacing: '0.18em', color: active ? '#e8d5b7' : '#686053', textTransform: 'uppercase' }}>
+                          Open
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -680,16 +657,12 @@ export default function HomeClient({ products, categories, query, error }) {
             ))}
           </div>
         </div>
-        </div> 
       </section>
 
       {/* ════════════════════════════════════════
           ANNOUNCEMENT STRIP
       ════════════════════════════════════════ */}
-      <div style={{
-        background: '#e8d5b7', padding: '0.6rem 0',
-        overflow: 'hidden', whiteSpace: 'nowrap',
-      }}>
+      <div style={{ background: '#e8d5b7', padding: '0.6rem 0', overflow: 'hidden', whiteSpace: 'nowrap' }}>
         <div style={{ display: 'inline-flex', gap: '3rem', animation: 'marquee 20s linear infinite', ...mono, fontSize: '0.6rem', letterSpacing: '0.2em', color: '#0c0c0c' }}>
           {['FREE DELIVERY ON ORDERS ABOVE RS 5000', 'CUSTOM KITS IN 15 DAYS', 'AUTHENTIC QUALITY GUARANTEED', 'WHATSAPP SUPPORT 24/7', 'NEW ARRIVALS EVERY WEEK', 'FREE DELIVERY ON ORDERS ABOVE RS 5000', 'CUSTOM KITS IN 15 DAYS', 'AUTHENTIC QUALITY GUARANTEED', 'WHATSAPP SUPPORT 24/7', 'NEW ARRIVALS EVERY WEEK'].map((t, i) => (
             <span key={i}>⚽ {t}</span>
@@ -713,7 +686,6 @@ export default function HomeClient({ products, categories, query, error }) {
             VIEW ALL →
           </Link>
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.85rem' }} className="cats-grid">
           {categories.map((cat, i) => (
             <div key={cat.label} {...reveal(i * 80)} style={{ ...reveal(i * 80).style }}>
@@ -729,20 +701,12 @@ export default function HomeClient({ products, categories, query, error }) {
                   e.currentTarget.querySelector('.cat-label').style.transform = 'none'
                 }}>
                 <img src={cat.img} alt={cat.label} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: 'brightness(0.65)', transition: 'transform 0.6s cubic-bezier(0.34,1,0.64,1)' }} />
-
-                {/* Gradient */}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 60%)' }} />
-
-                {/* Hover overlay */}
                 <div className="cat-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(232,213,183,0.07)', opacity: 0, transition: 'opacity 0.3s ease' }} />
-
-                {/* Label */}
                 <div className="cat-label" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.25rem', transition: 'transform 0.35s ease' }}>
                   <p style={{ ...mono, fontSize: '0.55rem', letterSpacing: '0.2em', color: 'rgba(232,213,183,0.6)', textTransform: 'uppercase', margin: '0 0 0.3rem' }}>{cat.count}</p>
                   <p style={{ ...serif, fontSize: '1.3rem', fontWeight: 300, color: '#f0ece4', margin: 0, lineHeight: 1.2 }}>{cat.label}</p>
                 </div>
-
-                {/* Arrow */}
                 <div style={{ position: 'absolute', top: 14, right: 14, width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e8d5b7" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </div>
@@ -775,7 +739,7 @@ export default function HomeClient({ products, categories, query, error }) {
       </div>
 
       {/* ════════════════════════════════════════
-          PRODUCTS
+          SPOTLIGHT / TOP PICK
       ════════════════════════════════════════ */}
       {topPick && (
         <section style={{ maxWidth: 1400, margin: '0 auto', padding: '2.5rem 1.5rem 0' }}>
@@ -785,15 +749,10 @@ export default function HomeClient({ products, categories, query, error }) {
               {...reveal(0)}
               style={{
                 ...reveal(0).style,
-                textDecoration: 'none',
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: 18,
-                border: '1px solid rgba(232,213,183,0.12)',
+                textDecoration: 'none', position: 'relative', overflow: 'hidden',
+                borderRadius: 18, border: '1px solid rgba(232,213,183,0.12)',
                 background: 'linear-gradient(135deg, rgba(232,213,183,0.1), rgba(12,12,12,0.96) 55%)',
-                minHeight: 320,
-                display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1.05fr) minmax(220px, 0.95fr)',
+                minHeight: 320, display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(220px, 0.95fr)',
               }}
               className="home-spotlight-card"
             >
@@ -809,7 +768,6 @@ export default function HomeClient({ products, categories, query, error }) {
                     A high-demand pick for players who want standout quality, fast delivery, and a cleaner matchday look.
                   </p>
                 </div>
-
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
                   {[
                     topPick.category_name || 'Football Essential',
@@ -817,25 +775,11 @@ export default function HomeClient({ products, categories, query, error }) {
                     `${parseNumber(topPick.review_count)} reviews`,
                     parseNumber(topPick.stock) > 0 ? `${parseNumber(topPick.stock)} in stock` : 'Limited availability',
                   ].map((item) => (
-                    <span
-                      key={item}
-                      style={{
-                        padding: '0.5rem 0.8rem',
-                        borderRadius: 999,
-                        border: '1px solid rgba(232,213,183,0.15)',
-                        background: 'rgba(255,255,255,0.02)',
-                        ...mono,
-                        fontSize: '0.6rem',
-                        letterSpacing: '0.14em',
-                        color: '#cdbfa9',
-                        textTransform: 'uppercase',
-                      }}
-                    >
+                    <span key={item} style={{ padding: '0.5rem 0.8rem', borderRadius: 999, border: '1px solid rgba(232,213,183,0.15)', background: 'rgba(255,255,255,0.02)', ...mono, fontSize: '0.6rem', letterSpacing: '0.14em', color: '#cdbfa9', textTransform: 'uppercase' }}>
                       {item}
                     </span>
                   ))}
                 </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                   <div>
                     <p style={{ ...mono, fontSize: '0.55rem', letterSpacing: '0.24em', color: '#6b645b', textTransform: 'uppercase', margin: '0 0 0.35rem' }}>
@@ -845,36 +789,19 @@ export default function HomeClient({ products, categories, query, error }) {
                       Rs {parseNumber(topPick.price).toFixed(0)}
                     </p>
                   </div>
-
                   <span style={{ ...mono, fontSize: '0.68rem', letterSpacing: '0.24em', color: '#0c0c0c', background: '#e8d5b7', borderRadius: 999, padding: '0.8rem 1.3rem', fontWeight: 600 }}>
                     SHOP THIS PICK
                   </span>
                 </div>
               </div>
-
               <div style={{ position: 'relative', minHeight: 320, background: '#080808' }}>
-                <img
-                  src={topPick.image_url || '/images/jersey.webp'}
-                  alt={topPick.name}
-                  loading="lazy"
-                  decoding="async"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.86)' }}
-                />
+                <img src={topPick.image_url || '/images/jersey.webp'} alt={topPick.name} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.86)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(12,12,12,0.2) 0%, rgba(12,12,12,0) 35%, rgba(12,12,12,0.5) 100%)' }} />
               </div>
             </Link>
 
             <div style={{ display: 'grid', gap: '1rem' }}>
-              <div
-                {...reveal(80)}
-                style={{
-                  ...reveal(80).style,
-                  borderRadius: 18,
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  background: '#101010',
-                  padding: '1.35rem',
-                }}
-              >
+              <div {...reveal(80)} style={{ ...reveal(80).style, borderRadius: 18, border: '1px solid rgba(255,255,255,0.06)', background: '#101010', padding: '1.35rem' }}>
                 <p style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.28em', color: '#6e6558', textTransform: 'uppercase', marginBottom: '1rem' }}>
                   Store Pulse
                 </p>
@@ -893,20 +820,11 @@ export default function HomeClient({ products, categories, query, error }) {
                 </div>
               </div>
 
-              <div
-                {...reveal(140)}
-                style={{
-                  ...reveal(140).style,
-                  borderRadius: 18,
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  background: 'linear-gradient(180deg, #111111, #0b0b0b)',
-                  padding: '1.35rem',
-                }}
-              >
-                <p style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.28em', color: '#6e6558', textTransform: 'uppercase', marginBottom: '0.9rem' }}>
-                  Checkout Confidence
+              <div {...reveal(140)} style={{ ...reveal(140).style, borderRadius: 18, border: '1px solid rgba(255,255,255,0.06)', background: '#101010', padding: '1.35rem' }}>
+                <p style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.28em', color: '#6e6558', textTransform: 'uppercase', marginBottom: '1rem' }}>
+                  Why Shop Here
                 </p>
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {[
                     'Cash on delivery available across Pakistan.',
                     'Restock alerts and new drop updates by email.',
@@ -924,34 +842,22 @@ export default function HomeClient({ products, categories, query, error }) {
         </section>
       )}
 
+      {/* ════════════════════════════════════════
+          PRODUCTS COLLECTION
+      ════════════════════════════════════════ */}
       <section style={{ maxWidth: 1400, margin: '0 auto', padding: '3rem 1.5rem 4rem' }}>
-
-        {/* Header + filter tabs */}
         <div {...reveal(0)} style={{ ...reveal(0).style, marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
             <div>
               <p style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.35em', color: '#444', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                {query ? 'Search Results' : 'Our Collection'}
+                Our Collection
               </p>
               <h2 style={{ ...serif, fontSize: 'clamp(1.8rem,4vw,2.8rem)', fontWeight: 300, color: '#f0ece4', margin: 0 }}>
-                {query ? `"${query}"` : 'All Products'}
+                All Products
               </h2>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.9rem' }}>
                 {['Best sellers', 'COD available', 'Weekly restocks'].map((item) => (
-                  <span
-                    key={item}
-                    style={{
-                      padding: '0.38rem 0.7rem',
-                      borderRadius: 999,
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      background: 'rgba(255,255,255,0.02)',
-                      ...mono,
-                      fontSize: '0.55rem',
-                      letterSpacing: '0.14em',
-                      color: '#8d8478',
-                      textTransform: 'uppercase',
-                    }}
-                  >
+                  <span key={item} style={{ padding: '0.38rem 0.7rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', ...mono, fontSize: '0.55rem', letterSpacing: '0.14em', color: '#8d8478', textTransform: 'uppercase' }}>
                     {item}
                   </span>
                 ))}
@@ -963,44 +869,28 @@ export default function HomeClient({ products, categories, query, error }) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }} className="products-toolbar">
-            {!query ? (
-              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                {catSlugs.map(({ slug, label }) => (
-                  <button key={slug} onClick={() => setFilter(slug)} style={{
-                    padding: '0.45rem 1.1rem',
-                    background: filter === slug ? '#e8d5b7' : 'transparent',
-                    border: `1px solid ${filter === slug ? '#e8d5b7' : '#1e1e1e'}`,
-                    borderRadius: 20, cursor: 'pointer',
-                    ...mono, fontSize: '0.62rem', letterSpacing: '0.12em',
-                    color: filter === slug ? '#0c0c0c' : '#555',
-                    transition: 'all 0.2s ease',
-                  }}
-                    onMouseEnter={e => { if (filter !== slug) { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#aaa' }}}
-                    onMouseLeave={e => { if (filter !== slug) { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#555' }}}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            ) : <div />}
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+              {catSlugs.map(({ slug, label }) => (
+                <button key={slug} onClick={() => setFilter(slug)} style={{
+                  padding: '0.45rem 1.1rem',
+                  background: filter === slug ? '#e8d5b7' : 'transparent',
+                  border: `1px solid ${filter === slug ? '#e8d5b7' : '#1e1e1e'}`,
+                  borderRadius: 20, cursor: 'pointer',
+                  ...mono, fontSize: '0.62rem', letterSpacing: '0.12em',
+                  color: filter === slug ? '#0c0c0c' : '#555',
+                  transition: 'all 0.2s ease',
+                }}
+                  onMouseEnter={e => { if (filter !== slug) { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#aaa' }}}
+                  onMouseLeave={e => { if (filter !== slug) { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#555' }}}>
+                  {label}
+                </button>
+              ))}
+            </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', color: '#666', ...mono, fontSize: '0.58rem', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 Sort
-                <select
-                  value={sortBy}
-                  onChange={event => setSortBy(event.target.value)}
-                  style={{
-                    background: '#101010',
-                    color: '#f0ece4',
-                    border: '1px solid #232323',
-                    borderRadius: 999,
-                    padding: '0.6rem 0.95rem',
-                    ...mono,
-                    fontSize: '0.6rem',
-                    letterSpacing: '0.12em',
-                    outline: 'none',
-                  }}
-                >
+                <select value={sortBy} onChange={event => setSortBy(event.target.value)} style={{ background: '#101010', color: '#f0ece4', border: '1px solid #232323', borderRadius: 999, padding: '0.6rem 0.95rem', ...mono, fontSize: '0.6rem', letterSpacing: '0.12em', outline: 'none' }}>
                   <option value="featured">Featured</option>
                   <option value="top-rated">Top Rated</option>
                   <option value="most-reviewed">Most Reviewed</option>
@@ -1009,42 +899,12 @@ export default function HomeClient({ products, categories, query, error }) {
                 </select>
               </label>
 
-              <button
-                onClick={() => setStockOnly(value => !value)}
-                style={{
-                  padding: '0.6rem 1rem',
-                  borderRadius: 999,
-                  border: `1px solid ${stockOnly ? '#e8d5b7' : '#232323'}`,
-                  background: stockOnly ? 'rgba(232,213,183,0.12)' : '#101010',
-                  color: stockOnly ? '#e8d5b7' : '#8b8b8b',
-                  ...mono,
-                  fontSize: '0.6rem',
-                  letterSpacing: '0.14em',
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
+              <button onClick={() => setStockOnly(value => !value)} style={{ padding: '0.6rem 1rem', borderRadius: 999, border: `1px solid ${stockOnly ? '#e8d5b7' : '#232323'}`, background: stockOnly ? 'rgba(232,213,183,0.12)' : '#101010', color: stockOnly ? '#e8d5b7' : '#8b8b8b', ...mono, fontSize: '0.6rem', letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                 {stockOnly ? 'In Stock Only On' : 'In Stock Only'}
               </button>
 
               {(filter !== 'all' || sortBy !== 'featured' || stockOnly) && (
-                <button
-                  onClick={resetCollectionControls}
-                  style={{
-                    padding: '0.6rem 1rem',
-                    borderRadius: 999,
-                    border: '1px solid #2a2a2a',
-                    background: 'transparent',
-                    color: '#8b8b8b',
-                    ...mono,
-                    fontSize: '0.6rem',
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
+                <button onClick={resetCollectionControls} style={{ padding: '0.6rem 1rem', borderRadius: 999, border: '1px solid #2a2a2a', background: 'transparent', color: '#8b8b8b', ...mono, fontSize: '0.6rem', letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                   Reset
                 </button>
               )}
@@ -1053,7 +913,7 @@ export default function HomeClient({ products, categories, query, error }) {
         </div>
 
         {error ? (
-          <div className="error-box"><p className="error-box__text">{error}</p></div>
+          <div><p style={{ ...mono, color: '#f87171', fontSize: '0.8rem' }}>{error}</p></div>
         ) : sortedProducts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 0' }}>
             <p style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</p>
@@ -1061,27 +921,9 @@ export default function HomeClient({ products, categories, query, error }) {
           </div>
         ) : (
           <>
-            <div
-              {...reveal(60)}
-              style={{
-                ...reveal(60).style,
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: '0.85rem',
-                marginBottom: '1.35rem',
-              }}
-              className="products-insights-grid"
-            >
+            <div {...reveal(60)} style={{ ...reveal(60).style, display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.85rem', marginBottom: '1.35rem' }} className="products-insights-grid">
               {productHighlights.map((item) => (
-                <div
-                  key={item.label}
-                  style={{
-                    padding: '1rem 1.1rem',
-                    borderRadius: 18,
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    background: 'linear-gradient(180deg, rgba(18,18,18,0.92), rgba(10,10,10,0.98))',
-                  }}
-                >
+                <div key={item.label} style={{ padding: '1rem 1.1rem', borderRadius: 18, border: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(180deg, rgba(18,18,18,0.92), rgba(10,10,10,0.98))' }}>
                   <p style={{ ...mono, fontSize: '0.55rem', letterSpacing: '0.22em', color: '#6a6156', textTransform: 'uppercase', margin: '0 0 0.55rem' }}>
                     {item.label}
                   </p>
@@ -1107,18 +949,9 @@ export default function HomeClient({ products, categories, query, error }) {
       ════════════════════════════════════════ */}
       <section style={{ margin: '0 1.5rem clamp(3rem,6vw,5rem)', maxWidth: 1400, marginLeft: 'auto', marginRight: 'auto' }}>
         <div {...reveal(0)} style={{ ...reveal(0).style }}>
-          <div style={{
-            position: 'relative', borderRadius: 16, overflow: 'hidden',
-            background: 'linear-gradient(135deg, #0f0e0a 0%, #1a1508 50%, #0a0f08 100%)',
-            border: '1px solid rgba(232,213,183,0.12)',
-            padding: 'clamp(2.5rem,5vw,4rem)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            gap: '2rem', flexWrap: 'wrap',
-          }}>
-            {/* Decorative circles */}
+          <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', background: 'linear-gradient(135deg, #0f0e0a 0%, #1a1508 50%, #0a0f08 100%)', border: '1px solid rgba(232,213,183,0.12)', padding: 'clamp(2.5rem,5vw,4rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem', flexWrap: 'wrap' }}>
             <div style={{ position: 'absolute', right: -60, top: -60, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,213,183,0.04) 0%, transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', right: 80, bottom: -80, width: 200, height: 200, borderRadius: '50%', border: '1px solid rgba(232,213,183,0.06)', pointerEvents: 'none' }} />
-
             <div style={{ position: 'relative', zIndex: 1 }}>
               <p style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.35em', color: 'rgba(232,213,183,0.5)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
                 ✦ Custom Manufacturing
@@ -1130,27 +963,13 @@ export default function HomeClient({ products, categories, query, error }) {
                 Full custom sublimation printing. Your logo, colors, and name. Delivered in 15 days.
               </p>
             </div>
-
             <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem', flexShrink: 0 }}>
-              <Link href="/custom-kits" style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
-                padding: '1rem 2.25rem',
-                background: '#e8d5b7', color: '#0a0a0a',
-                ...mono, fontSize: '0.7rem', letterSpacing: '0.2em',
-                borderRadius: 6, fontWeight: 600, textDecoration: 'none',
-                transition: 'all 0.2s ease',
-              }}
+              <Link href="/custom-kits" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', padding: '1rem 2.25rem', background: '#e8d5b7', color: '#0a0a0a', ...mono, fontSize: '0.7rem', letterSpacing: '0.2em', borderRadius: 6, fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s ease' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#f0e4ca'; e.currentTarget.style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#e8d5b7'; e.currentTarget.style.transform = 'none' }}>
                 GET FREE MOCKUP →
               </Link>
-              <a href="https://wa.me/923118186132" target="_blank" rel="noreferrer" style={{
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                padding: '0.85rem 2rem', border: '1px solid rgba(37,211,102,0.3)',
-                background: 'rgba(37,211,102,0.05)', borderRadius: 6,
-                ...mono, fontSize: '0.68rem', letterSpacing: '0.15em', color: '#25d366',
-                textDecoration: 'none', transition: 'all 0.2s',
-              }}
+              <a href="https://wa.me/923118186132" target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.85rem 2rem', border: '1px solid rgba(37,211,102,0.3)', background: 'rgba(37,211,102,0.05)', borderRadius: 6, ...mono, fontSize: '0.68rem', letterSpacing: '0.15em', color: '#25d366', textDecoration: 'none', transition: 'all 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(37,211,102,0.1)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(37,211,102,0.05)'}>
                 💬 WHATSAPP US
@@ -1161,22 +980,11 @@ export default function HomeClient({ products, categories, query, error }) {
       </section>
 
       {/* ════════════════════════════════════════
-          INSTAGRAM / SOCIAL PROOF
+          SOCIAL / NEWSLETTER
       ════════════════════════════════════════ */}
       <section style={{ borderTop: '1px solid #0f0f0f', background: '#080808', padding: 'clamp(3rem,5vw,4rem) 1.5rem' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', textAlign: 'center' }}>
-          <div
-            {...reveal(0)}
-            style={{
-              ...reveal(0).style,
-              marginBottom: '2.5rem',
-              padding: 'clamp(1.6rem,3vw,2.25rem)',
-              borderRadius: 18,
-              border: '1px solid rgba(232,213,183,0.12)',
-              background: 'linear-gradient(135deg, rgba(232,213,183,0.08), rgba(12,12,12,0.96) 60%)',
-            }}
-            className="newsletter-panel"
-          >
+          <div {...reveal(0)} style={{ ...reveal(0).style, marginBottom: '2.5rem', padding: 'clamp(1.6rem,3vw,2.25rem)', borderRadius: 18, border: '1px solid rgba(232,213,183,0.12)', background: 'linear-gradient(135deg, rgba(232,213,183,0.08), rgba(12,12,12,0.96) 60%)' }} className="newsletter-panel">
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(280px, 0.9fr)', gap: '1.5rem', alignItems: 'center' }} className="newsletter-grid">
               <div style={{ textAlign: 'left' }}>
                 <p style={{ ...mono, fontSize: '0.58rem', letterSpacing: '0.34em', color: 'rgba(232,213,183,0.6)', textTransform: 'uppercase', marginBottom: '0.65rem' }}>
@@ -1189,68 +997,20 @@ export default function HomeClient({ products, categories, query, error }) {
                   Join the list for size restock alerts, limited jersey drops, and members-only football deals.
                 </p>
               </div>
-
               <div style={{ textAlign: 'left' }}>
                 <form onSubmit={handleNewsletterSubmit} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
-                  <input
-                    type="email"
-                    value={newsletterEmail}
-                    onChange={event => setNewsletterEmail(event.target.value)}
-                    placeholder="Enter your email"
-                    aria-label="Email address"
-                    style={{
-                      flex: '1 1 220px',
-                      minWidth: 0,
-                      padding: '0.95rem 1rem',
-                      borderRadius: 999,
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      background: '#0b0b0b',
-                      color: '#f0ece4',
-                      outline: 'none',
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={submittingNewsletter}
-                    style={{
-                      padding: '0.95rem 1.35rem',
-                      borderRadius: 999,
-                      border: '1px solid #e8d5b7',
-                      background: submittingNewsletter ? 'rgba(232,213,183,0.15)' : '#e8d5b7',
-                      color: submittingNewsletter ? '#e8d5b7' : '#0c0c0c',
-                      cursor: submittingNewsletter ? 'default' : 'pointer',
-                      ...mono,
-                      fontSize: '0.62rem',
-                      letterSpacing: '0.16em',
-                      textTransform: 'uppercase',
-                      fontWeight: 600,
-                    }}
-                  >
+                  <input type="email" value={newsletterEmail} onChange={event => setNewsletterEmail(event.target.value)} placeholder="Enter your email" aria-label="Email address" style={{ flex: '1 1 220px', minWidth: 0, padding: '0.95rem 1rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', background: '#0b0b0b', color: '#f0ece4', outline: 'none' }} />
+                  <button type="submit" disabled={submittingNewsletter} style={{ padding: '0.95rem 1.35rem', borderRadius: 999, border: '1px solid #e8d5b7', background: submittingNewsletter ? 'rgba(232,213,183,0.15)' : '#e8d5b7', color: submittingNewsletter ? '#e8d5b7' : '#0c0c0c', cursor: submittingNewsletter ? 'default' : 'pointer', ...mono, fontSize: '0.62rem', letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}>
                     {submittingNewsletter ? 'Joining...' : 'Join Now'}
                   </button>
                 </form>
-
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: newsletterState.message ? '0.85rem' : 0 }}>
                   {['Restock alerts', 'Drop reminders', 'Exclusive offers'].map((item) => (
-                    <span
-                      key={item}
-                      style={{
-                        padding: '0.4rem 0.7rem',
-                        borderRadius: 999,
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        background: '#0d0d0d',
-                        ...mono,
-                        fontSize: '0.55rem',
-                        letterSpacing: '0.14em',
-                        color: '#9f9585',
-                        textTransform: 'uppercase',
-                      }}
-                    >
+                    <span key={item} style={{ padding: '0.4rem 0.7rem', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', background: '#0d0d0d', ...mono, fontSize: '0.55rem', letterSpacing: '0.14em', color: '#9f9585', textTransform: 'uppercase' }}>
                       {item}
                     </span>
                   ))}
                 </div>
-
                 {newsletterState.message && (
                   <p style={{ margin: 0, color: newsletterState.type === 'success' ? '#b7f0cc' : '#ffb4b4', lineHeight: 1.7 }}>
                     {newsletterState.message}
@@ -1273,14 +1033,7 @@ export default function HomeClient({ products, categories, query, error }) {
               { href: 'https://x.com/Blaze_fitss', icon: 'Twitter / X', color: '#f0ece4' },
               { href: 'https://wa.me/923118186132', icon: 'WhatsApp', color: '#25d366' },
             ].map(s => (
-              <a key={s.icon} href={s.href} target="_blank" rel="noreferrer" style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                padding: '0.65rem 1.4rem',
-                border: '1px solid #1a1a1a', borderRadius: 6,
-                ...mono, fontSize: '0.65rem', letterSpacing: '0.1em',
-                color: '#555', textDecoration: 'none',
-                transition: 'all 0.2s ease', background: '#0c0c0c',
-              }}
+              <a key={s.icon} href={s.href} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.4rem', border: '1px solid #1a1a1a', borderRadius: 6, ...mono, fontSize: '0.65rem', letterSpacing: '0.1em', color: '#555', textDecoration: 'none', transition: 'all 0.2s ease', background: '#0c0c0c' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = s.color + '44'; e.currentTarget.style.color = s.color; e.currentTarget.style.background = s.color + '0a' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a1a'; e.currentTarget.style.color = '#555'; e.currentTarget.style.background = '#0c0c0c' }}>
                 {s.icon}
@@ -1292,6 +1045,7 @@ export default function HomeClient({ products, categories, query, error }) {
 
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:none } }
+        @keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
 
         @media (max-width: 1100px) {
           .hero-shell { grid-template-columns: 1fr !important; }
