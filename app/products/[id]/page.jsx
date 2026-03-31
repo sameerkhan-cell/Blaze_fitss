@@ -20,23 +20,24 @@ const mono  = { fontFamily: 'DM Mono, monospace' }
 const serif = { fontFamily: 'Cormorant Garamond, serif' }
 
 function SizeChartModal({ onClose, availableSizes, selectedSize, onSelect }) {
-  return (
+  if (typeof document === 'undefined') return null
+  return createPortal(
     <div onClick={e => e.target === e.currentTarget && onClose()} style={{
-      position: 'fixed', inset: 0, zIndex: 999,
+      position: 'fixed', inset: 0, zIndex: 9999,
       background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem',
     }}>
-      <div style={{ background: '#0f0f0f', border: '1px solid #222', borderRadius: 14, width: '100%', maxWidth: 520, overflow: 'hidden', animation: 'scaleIn 0.2s ease forwards' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.1rem 1.4rem', borderBottom: '1px solid #1a1a1a' }}>
+      <div style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 14, width: '100%', maxWidth: 520, overflow: 'hidden', animation: 'scaleIn 0.2s ease forwards' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.1rem 1.4rem', borderBottom: '1px solid #2a2a2a' }}>
           <h3 style={{ ...serif, margin: 0, fontSize: '1.2rem', fontWeight: 300, color: '#f0ece4' }}>Size Guide</h3>
-          <button onClick={onClose} style={{ background: 'none', border: '1px solid #222', color: '#666', width: 30, height: 30, borderRadius: '50%', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: '1px solid #333', color: '#888', width: 30, height: 30, borderRadius: '50%', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
         <div style={{ padding: '0.75rem 1.4rem 1.4rem', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 {['Size', 'Chest', 'Length', 'Shoulder'].map(h => (
-                  <th key={h} style={{ padding: '7px 10px', textAlign: 'center', ...mono, fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#444', fontWeight: 400, borderBottom: '1px solid #1a1a1a' }}>{h}</th>
+                  <th key={h} style={{ padding: '7px 10px', textAlign: 'center', ...mono, fontSize: '0.58rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#888', fontWeight: 400, borderBottom: '1px solid #2a2a2a' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -46,21 +47,22 @@ function SizeChartModal({ onClose, availableSizes, selectedSize, onSelect }) {
                 const sel   = selectedSize === row.size
                 return (
                   <tr key={row.size} onClick={() => avail && (onSelect(sel ? '' : row.size), onClose())}
-                    style={{ background: sel ? 'rgba(232,213,183,0.08)' : i % 2 === 0 ? '#0c0c0c' : '#0f0f0f', cursor: avail ? 'pointer' : 'not-allowed', opacity: avail ? 1 : 0.3 }}>
-                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontWeight: 700, fontSize: '0.8rem', color: sel ? '#e8d5b7' : avail ? '#ccc' : '#444', borderBottom: '1px solid #141414' }}>{avail ? row.size : <s>{row.size}</s>}</td>
-                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontSize: '0.76rem', color: '#666', borderBottom: '1px solid #141414' }}>{avail ? row.chest : '—'}</td>
-                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontSize: '0.76rem', color: '#666', borderBottom: '1px solid #141414' }}>{avail ? row.length : '—'}</td>
-                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontSize: '0.76rem', color: '#666', borderBottom: '1px solid #141414' }}>{avail ? row.shoulder : '—'}</td>
+                    style={{ background: sel ? 'rgba(232,213,183,0.1)' : i % 2 === 0 ? '#161616' : '#1a1a1a', cursor: avail ? 'pointer' : 'not-allowed', opacity: avail ? 1 : 0.35 }}>
+                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontWeight: 700, fontSize: '0.8rem', color: sel ? '#e8d5b7' : avail ? '#ddd' : '#444', borderBottom: '1px solid #222' }}>{avail ? row.size : <s>{row.size}</s>}</td>
+                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontSize: '0.76rem', color: '#aaa', borderBottom: '1px solid #222' }}>{avail ? row.chest : '—'}</td>
+                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontSize: '0.76rem', color: '#aaa', borderBottom: '1px solid #222' }}>{avail ? row.length : '—'}</td>
+                    <td style={{ padding: '9px 10px', textAlign: 'center', ...mono, fontSize: '0.76rem', color: '#aaa', borderBottom: '1px solid #222' }}>{avail ? row.shoulder : '—'}</td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
-        <p style={{ ...mono, fontSize: '0.58rem', color: '#333', textAlign: 'center', padding: '0 1.4rem 1.2rem', margin: 0 }}>💡 Between sizes? Size up for relaxed, size down for slim fit.</p>
+        <p style={{ ...mono, fontSize: '0.58rem', color: '#555', textAlign: 'center', padding: '0 1.4rem 1.2rem', margin: 0 }}>💡 Between sizes? Size up for relaxed, size down for slim fit.</p>
       </div>
       <style>{`@keyframes scaleIn { from { opacity:0; transform:scale(0.94) } to { opacity:1; transform:scale(1) } }`}</style>
-    </div>
+    </div>,
+    document.body
   )
 }
 
