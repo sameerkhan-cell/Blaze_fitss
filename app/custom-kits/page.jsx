@@ -37,7 +37,7 @@ const FEATURES = [
   { icon: '⚡', title: 'Premium Sublimation',   desc: 'All-over dye sublimation printing. Colors that never fade, crack or peel.' },
   { icon: '👕', title: 'Pro-Grade Fabric',       desc: 'Moisture-wicking polyester with stretch panels. Built for match performance.' },
   { icon: '⚽', title: 'Complete Kits',          desc: 'Jerseys, trousers, caps and kit bags — everything in one order.' },
-  { icon: '📦', title: 'Any Quantity',           desc: 'From 5 to 500+ units. No minimum order requirement.' },
+  { icon: '📦', title: 'Any Quantity',           desc: 'From 9 to 500+ units. Minimum order of 9 custom kits per order.' },
   { icon: '🚀', title: 'Fast Turnaround',        desc: '10–15 working days from design approval to delivery.' },
 ]
 
@@ -64,10 +64,17 @@ function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', teamName: '', quantity: '', message: '' })
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
+  const [qtyError, setQtyError] = useState('')
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!form.name || !form.phone) return
+    const qty = parseInt(form.quantity, 10)
+    if (form.quantity && (isNaN(qty) || qty < 9)) {
+      setQtyError('Minimum order is 9 custom kits.')
+      return
+    }
+    setQtyError('')
     setSending(true)
     const msg = encodeURIComponent(
       `*Custom Kit Enquiry — BLAZE FITSS*\n\nName: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\nTeam: ${form.teamName}\nQty: ${form.quantity}\nMessage: ${form.message}`
@@ -183,11 +190,14 @@ function ContactSection() {
                     onBlur={e => e.target.style.borderColor = '#222'} />
                 </div>
                 <div>
-                  <label style={labelStyle}>Quantity</label>
-                  <input style={inputStyle} placeholder="e.g. 15 jerseys" value={form.quantity}
-                    onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-                    onFocus={e => e.target.style.borderColor = '#e8d5b7'}
-                    onBlur={e => e.target.style.borderColor = '#222'} />
+                  <label style={labelStyle}>Quantity <span style={{ color: '#666', fontStyle: 'normal' }}>(min. 9)</span></label>
+                  <input
+                    style={{ ...inputStyle, borderColor: qtyError ? '#c0392b' : '#222' }}
+                    type="number" min={9} placeholder="e.g. 15" value={form.quantity}
+                    onChange={e => { setForm(f => ({ ...f, quantity: e.target.value })); setQtyError('') }}
+                    onFocus={e => e.target.style.borderColor = qtyError ? '#c0392b' : '#e8d5b7'}
+                    onBlur={e => e.target.style.borderColor = qtyError ? '#c0392b' : '#222'} />
+                  {qtyError && <p style={{ ...mono, fontSize: '0.62rem', color: '#c0392b', marginTop: '0.35rem', marginBottom: 0 }}>{qtyError}</p>}
                 </div>
                 <div>
                   <label style={labelStyle}>Budget / Notes</label>
