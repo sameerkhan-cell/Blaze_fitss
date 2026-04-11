@@ -39,7 +39,7 @@ export default function AnimatedHomePage({ products, categories, query, error })
         {error ? (
           <div className="error-box"><p className="error-box__text">{error}</p></div>
         ) : products.length === 0 ? (
-          <p className="page__no-results">No products found.</p>
+          <p className="page__no-results"> COMING SOON </p>
         ) : (
           <div className="reveal"><ProductGrid products={products} /></div>
         )}

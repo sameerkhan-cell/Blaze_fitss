@@ -6,7 +6,7 @@ export default function ProductGrid({ products }) {
     return (
       <div className="store-empty">
         <div className="store-empty__icon">📦</div>
-        <p className="store-empty__text">No products found.</p>
+        <p className="store-empty__text">COMING SOON</p>
       </div>
     )
   }
