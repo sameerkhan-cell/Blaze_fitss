@@ -90,14 +90,18 @@ export default function HomeClient({ products, categories, query, error }) {
     { slug: 'shopforkids',  label: 'Kids' },
   ]
 
-  const topPick = useMemo(() => (
-    products.reduce((best, product) => {
+  const topPick = useMemo(() => {
+    // Override to highlight the Portugal World Cup jersey in the spotlight
+    const spotlightJersey = products.find(p => p.name?.toLowerCase().includes('portugal 2026 world cup jersey'))
+    if (spotlightJersey) return spotlightJersey
+
+    return products.reduce((best, product) => {
       if (!best) return product
       const bestScore = (parseNumber(best.rating, 4.6) * 100) + parseNumber(best.review_count)
       const productScore = (parseNumber(product.rating, 4.6) * 100) + parseNumber(product.review_count)
       return productScore > bestScore ? product : best
     }, null)
-  ), [products])
+  }, [products])
 
   const {
     inStockCount,
