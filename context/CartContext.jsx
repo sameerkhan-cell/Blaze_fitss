@@ -2,6 +2,7 @@
 // context/CartContext.jsx
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { useAuth } from './AuthContext'
 
 const CartContext = createContext(null)
 
@@ -20,6 +21,7 @@ function recalculateCart(currentCart, nextItems) {
 }
 
 export function CartProvider({ children }) {
+  const { isLoggedIn, setAuthModal } = useAuth()
   const [cart, setCart]               = useState({ items: [], total: 0 })
   const [cartOpen, setCartOpen]       = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
@@ -44,6 +46,10 @@ export function CartProvider({ children }) {
   }
 
   const addToCart = async (productId, quantity = 1, size = null) => {
+    if (!isLoggedIn) {
+      setAuthModal('login')
+      return false
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/cart', {
@@ -55,9 +61,12 @@ export function CartProvider({ children }) {
       if (json.success) {
         setCart(json.data)
         showNotification('Added to cart')
+        return true
       }
+      return false
     } catch (err) {
       console.error('addToCart error:', err)
+      return false
     } finally {
       setLoading(false)
     }
@@ -134,9 +143,13 @@ export function CartProvider({ children }) {
   // ✅ FIXED: single function — closes cart AND opens checkout atomically
   // Avoids the race condition where CartPanel unmounts before checkoutOpen=true takes effect
   const openCheckout = useCallback(() => {
+    if (!isLoggedIn) {
+      setAuthModal('login')
+      return
+    }
     setCartOpen(false)
     setCheckoutOpen(true)
-  }, [])
+  }, [isLoggedIn, setAuthModal])
 
   const cartCount = cart.items?.reduce((sum, i) => sum + i.quantity, 0) ?? 0
 

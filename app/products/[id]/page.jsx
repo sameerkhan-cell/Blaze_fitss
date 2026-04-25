@@ -114,9 +114,15 @@ export default function ProductDetailPage() {
   }, [id])
 
   const handleAddToCart = async () => {
-    for (let i = 0; i < qty; i++) await addToCart(product.id, 1, selectedSize || null)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2500)
+    let anyAdded = false
+    for (let i = 0; i < qty; i++) {
+      const addedItem = await addToCart(product.id, 1, selectedSize || null)
+      if (addedItem) anyAdded = true
+    }
+    if (anyAdded) {
+      setAdded(true)
+      setTimeout(() => setAdded(false), 2500)
+    }
   }
 
   const getImages = () => {

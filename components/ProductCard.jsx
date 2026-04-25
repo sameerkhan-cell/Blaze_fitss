@@ -25,9 +25,11 @@ export default function ProductCard({ product, index = 0 }) {
     e.preventDefault()
     e.stopPropagation()
     if (adding || loading) return
-    setAdding(true)
-    await addToCart(product.id)
-    setTimeout(() => setAdding(false), 800)
+    const added = await addToCart(product.id)
+    if (added) {
+      setAdding(true)
+      setTimeout(() => setAdding(false), 800)
+    }
   }
 
   return (
